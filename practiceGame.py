@@ -5,20 +5,30 @@ import os
 class Player:
 	def __init__(self):
 		self.name = "Joe"
-		self.health = 100
 		self.weapon = "Broad Sword"
+		self.__health = 100
+		self.is_dead = False
+
+	def set_health(self, adjustment):
+		self.__health += adjustment
+		self.__health = min(self.__health, 100)
+		self.__health = max(self.__health, 0)
+
+	def get_health(self):
+		return self.__health
+	
+	def check_for_death(self):
+		self.is_dead = bool(self.__health <= 0)
+		return f"Having lost all health, {player.name} falls lifeless to the ground." if self.is_dead else ""
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
 class Utilities:
 	def clear_screen():
-		# Windows
-		if os.name == 'nt':
-			subprocess.call('cls', shell=True)
-		# Linux
-		else:
-			subprocess.call('clear', shell=True)
+		command = 'cls' if os.name == 'nt' else 'clear'
+		subprocess.call(command, shell=True)
 
 	# ------------------------------------------------------------------------------------
 
@@ -39,6 +49,7 @@ class Utilities:
 	
 	def draw_game_frame(header, scenario, options, outcome, width):
 		Utilities.clear_screen()
+		Utilities.print_title()
 		border = Utilities.create_ruler(width)
 		print(
 			f"{border}\n"
@@ -67,19 +78,17 @@ class Utilities:
 	# ------------------------------------------------------------------------------------
 	
 	def wrap_text(text, width):
-		words = text.split()  # Split the text into words
+		words = text.split()
 		lines = []
 		current_line = ""
 
 		for word in words:
-			# Check if adding the word would exceed the width
 			if len(current_line) + len(word) + 1 > width:
-				lines.append(current_line.strip())  # Add the current line to the list
-				current_line = word  # Start a new line with the current word
+				lines.append(current_line.strip())
+				current_line = word
 			else:
-				current_line += " " + word  # Add the word to the current line
+				current_line += " " + word
 
-		# Add the last line if there's anything left
 		if current_line:
 			lines.append(current_line.strip())
 
@@ -89,9 +98,21 @@ class Utilities:
 
 	def format_options(items):
 		result = []
-		for i, item in enumerate(items, start=1):  # Start indexing at 1
+		for i, item in enumerate(items, start = 1):
 			result.append(f"\t{i}: {item}")
 		return "\n".join(result)
+	
+	def print_title():
+		print('''
+	 _           _                _       _   _     _       
+	| |         | |              (_)     | | | |   (_)      
+	| |     __ _| |__  _   _ _ __ _ _ __ | |_| |__  _  __ _ 
+	| |    / _` | '_ \| | | | '__| | '_ \| __| '_ \| |/ _` |
+	| |___| (_| | |_) | |_| | |  | | | | | |_| | | | | (_| |
+	\_____/\__,_|_.__/ \__, |_|  |_|_| |_|\__|_| |_|_|\__,_|
+		   	   __/ |                               
+			  |___/  
+''')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,7 +121,6 @@ class Game:
 	def __init__(self, player: Player, events: 'Game_Events' = None):
 		self.player = player
 		self.events = events.game_data
-		self.gameover = False
 		self.display_width = 75
 
 	# ------------------------------------------------------------------------------------
@@ -120,21 +140,18 @@ class Game:
 	# ------------------------------------------------------------------------------------
 	
 	def start_game(self):
-		while not self.gameover:
-			stats = [str(self.player.name), str(self.player.health), str(self.player.weapon)]
+		while not self.player.is_dead:
+			stats = [str(self.player.name), str(self.player.get_health()), str(self.player.weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
 			player_input = self.perform_event(header, self.events["hallway"])
 			input()
 
-			if player_input == 0:
-				self.gameover = True
+			#if(self.player.is_dead):
+			events.death(self.display_width)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~				
-lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-options = ["Sing a song", "Do a dance", "Pick your nose"]
-
 class Game_Events:
 	def __init__(self):
 		self.game_data = {
@@ -167,52 +184,68 @@ class Game_Events:
 		}
 
 	# ---------------------------------- Hallway Events ----------------------------------
-
-	def monster(self, player: Player):
-		return f"A monster jumps out of the darkness!"
-	
 	def hallway_trap_good(self, player: Player):
-		player.health += 40
-		return f"{player.name} gets 40 health!"
+		rand_num = random.randint(20, 30)
+		player.set_health(rand_num)
+		return (f"{player.name} steps on a trap! Oh no!"
+			f"\nFirey darts shoot out of the walls, but {player.name} quickly evades them. "
+			f"The burning darts illuminate a hole in the wall revealing a stashed potion. "
+			f"{player.name} grabs the bottle and drinks it to replenish {rand_num} health.")
 	
 	def hallway_trap_bad(self, player: Player):
-		player.health -= 40
-		return f"{player.name} loses 40 health!"
+		rand_num = random.randint(20, 30)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} steps on a trap! Oh no!"
+			f"\nFirey darts shoot out of the walls wounding {player.name} and causing {rand_num} reduction in health!"
+			f"\n{death_message}")
 	
 	def hallway_trap_none(self, player: Player):
-		return f"{player.name} contemplates their health."
+		return (f"{player.name} steps on a trap! Oh no!"
+			f"\n{player.name} braces for sudden pain but the trap appears to have been a dud. Phew!")
 	
 	def trip_good(self, player: Player):
 		rand_num = random.randint(10, 30)
-		player.health += rand_num
+		player.set_health(rand_num)
 		return (f"{player.name} trips over a rock!"
 			f"\nAfter getting up and dusting off, {player.name} sees that the rock was actually a health potion!"
 			f"\n{player.name} quickly grabs and gulps it down regaining {rand_num} health.")
 	
 	def trip_bad(self, player: Player):
 		rand_num = random.randint(1, 20)
-		player.health -= rand_num
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
 		return (f"{player.name} trips over a rock!"
-			f"\n{player.name} face plants into the hard floor and takes {rand_num} damage! Ouch!")
+			f"\n{player.name} face plants into the hard floor and takes {rand_num} damage! Ouch!"
+			f"\n{death_message}")
 	
 	def trip_none(self, player: Player):
 		return (f"{player.name} trips over a rock!"
 			f"\nFortunately {player.name} landed in some nice soft mud. Every thing is fine.")
 	
-	def weapon_treasure(self, player: Player):
-		return f"{player.name} finds a weapon!"
-	
-	def nothing(self, player: Player):
-		return (f"Well that didn't seem to go anywhere."
-		   f"\n{player.name} is in a similar place as before.")
-	
 	# -------------------------------- Sewer Grate Events --------------------------------
+
 
 	# ----------------------------------- Yelling Events ---------------------------------
 
 	# ------------------------------- Miscellaneous Events -------------------------------
+	def monster(self, player: Player):
+		return f"A monster jumps out of the darkness!"
 
+	def weapon_treasure(self, player: Player):
+		return f"{player.name} finds a weapon!"
 
+	def nothing(self, player: Player):
+		return (f"Well that didn't seem to go anywhere."
+		   f"\n{player.name} is in a similar place as before.")
+	
+	def death(self, width):
+		border = Utilities.create_ruler(width, 'X')
+		death_message = "You have failed your quest!"
+		game_over = "G A M E   O V E R !"
+		print(f"{border}\n{death_message.center(width)}\n{game_over.center(width)}\n{border}")
+		input()
+	
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
