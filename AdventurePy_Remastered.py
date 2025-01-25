@@ -8,12 +8,14 @@ class Player:
 	def __init__(self):
 		self.name = input("Enter your character's name: ")
 		self.weapon = "Fists"
+		self.maximum_health = 100
 		self.__health = 100
 		self.is_dead = False
+		self.trolls_blood = 0
 
 	def set_health(self, adjustment):
 		self.__health += adjustment
-		self.__health = min(self.__health, 100)
+		self.__health = min(self.__health, self.maximum_health)
 		self.__health = max(self.__health, 0)
 
 	def get_health(self):
@@ -28,6 +30,8 @@ class Player:
 			"name": self.name,
 			"weapon": self.weapon,
 			"health": self.__health,
+			"maximum_health": self.maximum_health,
+			"trolls_blood": self.trolls_blood,
 			"is_dead": self.is_dead
 		}
 
@@ -155,7 +159,8 @@ class Game:
 
 		Utilities.draw_game_frame(header, event["event"], options, event["action"], self.display_width)
 		player_input = Utilities.get_player_input("Action: ", num_options)
-		random_num = random.randint(0, 6) if player_input < 4 else 0
+		selection_size = len(self.events[events.next_event][f"selection{player_input}"])
+		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
 		outcome = event[f"selection{player_input}"][random_num](self.player)
 		Utilities.draw_game_frame(header, event["event"], options, outcome, self.display_width)
 
@@ -166,14 +171,12 @@ class Game:
 	def start_game(self):
 		events.print_introduction(player, self.display_width)
 		while not self.player.is_dead:
-			stats = [str(self.player.name), str(self.player.get_health()), str(self.player.weapon)]
+			stats = [str(self.player.name), str(f"{self.player.get_health()}/{self.player.maximum_health}"),
+				str(self.player.weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
-			player_input = self.perform_event(header, self.events[events.primary_event])
+			player_input = self.perform_event(header, self.events[events.next_event])
 			input()
-
-			if events.link_event:
-				events.link_event()
 
 			if(self.player.is_dead):
 				events.death(self.display_width)
@@ -182,8 +185,8 @@ class Game:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~				
 class Game_Events:
 	def __init__(self):
-		self.primary_event = "hallway"
-		self.link_event = None # For events that continue into other events.
+		self.next_event = "hallway"
+		self.eventOptions = {"hallway": 7, "gnome": 3}
 
 		self.game_data = {
 			"hallway": {
@@ -216,6 +219,29 @@ class Game_Events:
 					self.yell_collapse_good,
 					self.yell_collapse_bad,
 					self.yell_collapse_none
+				],
+				"selection4": [
+					Utilities.save_game
+				]
+			},
+			"gnome": {
+				"event": "The gnome looks delicious!",
+				"options": ["I had gnome for lunch.", "Nummy gnomey!", "Poke it with a stick first.", "Save Game"],
+				"action": f"Should {player.name} eat it?",
+				"selection1": [
+					self.dirpy_gnomey_good,
+					self.dirpy_gnomey_bad,
+					self.dirpy_gnomey_none
+				],
+				"selection2": [
+					self.nummy_gnomey_good,
+					self.nummy_gnomey_bad,
+					self.nummy_gnomey_none
+				],
+				"selection3": [
+					self.pokey_gnomey_good,
+					self.pokey_gnomey_bad,
+					self.pokey_gnomey_none
 				],
 				"selection4": [
 					Utilities.save_game
@@ -309,6 +335,7 @@ class Game_Events:
 			f"{death_message}")
 	
 	def yell_gnome(self, player: Player):
+		self.next_event = "gnome"
 		return (f"{player.name} shouts for help. Moments later, a curious looking gnome appears "
 		  	f"from around the corner.")
 
@@ -337,8 +364,67 @@ class Game_Events:
 		  	f"The roar of large falling rocks can be heard ahead. I hope that didn't block any "
 			f"important passages. Oops!")
 
-	# ----------------------------------- Treasure Room ---------------------------------
+	# ----------------------------------- Gnome Events ---------------------------------
+	def nummy_gnomey_good(self, player: Player):
+		player.maximum_health += 30
+		return (f"The todler-sized gnome beings to squeak out in its happy little voice, \"I "
+			f"know a way out...\" when {player.name} suddenly pounces on it and begins feasting "
+			f"on its chocolaty innards. What was that it was about to say? Oh who cares. As "
+			f"{player.name} munches on the remainder of the gnomes head, {player.name} feels "
+			f"an increase in vitality. {player.name}'s maximum health increases!")
+	
+	def nummy_gnomey_bad(self, player: Player):
+		rand_num = random.randint(10, 15)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"Gnomercy! The cuddly little gnome squeaks in terror as {player.name} lunges "
+		  	f"toward it drooling. Its retreat is in vain as {player.name} scoops the squirmy "
+			f"doll creature up and gobbles it down. Moments later {player.name} begins to have "
+			f"bad indegestion and takes {rand_num} damage. Gnomaalox! {death_message}")
+	
+	def nummy_gnomey_none(self, player: Player):
+		return (f"{player.name} picks the startled gnome up by the head, and bites off one of "
+			f"its legs. The last gnome {player.name} ate tasted much better. {player.name} drops "
+			f"the gnome on the floor in disgust and lets it hop away.")	
 
+	def pokey_gnomey_good(self, player: Player):
+		rand_num = random.randint(15, 35)
+		player.set_health(rand_num)
+		return (f"{player.name} breaks a stick off of a sewer tree and suspiciously prods the "
+		  	f" gnoblin. The gnome suddenly pops into a shower of confetti leaving only its pointed "
+			f"hat behind. Picking it up {player.name} finds a potion inside and chugs it. "
+			f"{player.name} regains {rand_num} health!")
+	
+	def pokey_gnomey_bad(self, player: Player):
+		return (f"{player.name} pulls a walking stick from their pocket and jabs the gnome in the "
+		  	f"eye. The gnome becomes enraged, growls, and viciously attacks {player.name}!")
+	
+	def pokey_gnomey_none(self, player: Player):
+		return (f"{player.name} pulls out the breadstick left over from lunch and extends it "
+		  	f"toward the gnome. In a flash, the gnome snatches it away and gobbles it up. "
+			f"\"Thanks!\" it says as it dissapears into the darkness. {player.name} was going to "
+			f"eat that. How rude!")
+			  
+	def dirpy_gnomey_good(self, player: Player):
+		player.trolls_blood += 1
+		return (f"\"What are you doing here cute little guy?\" {player.name} asks. The gnome "
+		  	f"sniffles, and begins to tear up. \"Did you say 'cute'?\" After about five minutes "
+			f"of sobbing, the gnome pull a vial of green liquid from its beard and offers it to "
+			f"{player.name}. \"This is troll's blood.\" he begins to explain. \"You can use it "
+			f"to...\" *gulp* {player.name} swallows the last drop while inattentively staring off "
+			f"in another direction. \"Oh dear!\" exclaims the gnome. Was {player.name} supposed "
+			f"to do that?")
+	
+	def dirpy_gnomey_bad(self, player: Player):
+		return (f"{player.name} stares silently at the gnome. It sniffs and begins making an odd "
+			f"growling sound. The gnome begins increasing in size and transforms into a monster!")  
+		  	
+	def dirpy_gnomey_none(self, player: Player):
+		return (f"{player.name} decides there is no time to entertain a short-stack and punts it "
+		  	f"down the nearest open grate. \"I can't reach the ground fast enough!\" it yells as "
+			f"as it decends into the dark abyss. Time to focus on more important things.")
+
+			
 
 	# ------------------------------- Miscellaneous Events -------------------------------
 	def monster(self, player: Player):
