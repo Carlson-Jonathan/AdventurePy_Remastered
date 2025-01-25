@@ -6,7 +6,7 @@ import os
 
 class Player:
 	def __init__(self):
-		self.name = input("Enter your character's name: ")
+		self.name = "Anonymous"
 		self.weapons = {"Fists"}
 		self.equipped_weapon = "Fists"
 		self.maximum_health = 100
@@ -154,17 +154,90 @@ class Utilities:
 			file.write(player_string)
 		return (f"{player.name} pauses for a moment of meditation. {player.name} feels a strange "
 			f"bond with the surrounding area. (Game saved as \"{player.name}.sav\")")
+	
+	# ------------------------------------------------------------------------------------
+
+	def get_save_files():
+		current_dir = Path(__file__).parent
+		file_paths = current_dir.glob("*.sav")
+		return [file.name for file in file_paths]
+	
+	# ------------------------------------------------------------------------------------
+
+	def get_game_to_load(width):
+		save_files = Utilities.get_save_files()
+		if not save_files:
+			print("Error: No saved games were found in the current working directory.")
+			exit()
+		else:
+			file_options = Utilities.format_options(save_files)
+			player_input = int(Utilities.format_opening_menus(file_options, len(file_options),
+				"Select a save to load: ", "str", width))
+		return save_files[player_input - 1]
+
+	# ------------------------------------------------------------------------------------
+
+	def show_save_load_prompt(width):
+		options = Utilities.format_options(["New Game", "Load Saved Game"])
+		return Utilities.format_opening_menus(options, len(options),
+			"Make your selection: ", "num", width)
+	
+	# ------------------------------------------------------------------------------------
+
+	def format_opening_menus(options, num_options, prompt, prompt_type, width):
+		border = Utilities.create_ruler(width, '~')
+		Utilities.clear_screen()
+		Utilities.print_title()
+		print(border + "\n")
+		print(options)
+		print("\n" + border)
+		if prompt_type == "num":
+			return Utilities.get_player_input(prompt, num_options)
+		else:
+			return input(prompt)
+		
+	# ------------------------------------------------------------------------------------		
+		
+	def get_save_data(game_to_load):
+		try:
+			file_path = Path(game_to_load).resolve()
+			with file_path.open("r") as file:
+				data = json.load(file)
+			return data
+		except json.JSONDecodeError:
+			print("Error: The file does not contain valid JSON.")
+		except FileNotFoundError:
+			print(f"Error: The file '{game_to_load}' was not found.")
+		return None
+
+	# ------------------------------------------------------------------------------------
+
+	def load_game(width):
+		game_to_load = Utilities.get_game_to_load(width)
+		save_data = Utilities.get_save_data(game_to_load)
+		player.__dict__.update(save_data)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class Game:
-	def __init__(self, player: Player, events: 'Game_Events' = None):
-		self.player = player
+	def __init__(self, events: 'Game_Events' = None):
 		self.events = events.game_data
 		self.display_width = 75
 
+	# ------------------------------------------------------------------------------------
+		
+	def run_start_sequence(self):
+		player_input = Utilities.show_save_load_prompt(self.display_width)
+		if player_input == 1:
+			player.name = input("Enter your character's name: ")
+			Utilities.clear_screen()
+			Utilities.print_title()
+			events.print_introduction(self.display_width)
+		else:
+			Utilities.load_game(self.display_width)
+		
 	# ------------------------------------------------------------------------------------
 
 	def perform_event(self, header, event):
@@ -175,7 +248,7 @@ class Game:
 		player_input = Utilities.get_player_input("Action: ", num_options)
 		selection_size = len(self.events[events.next_event][f"selection{player_input}"])
 		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
-		outcome = event[f"selection{player_input}"][random_num](self.player)
+		outcome = event[f"selection{player_input}"][random_num](player)
 		Utilities.draw_game_frame(header, event["event"], options, outcome, self.display_width)
 
 		return player_input
@@ -183,16 +256,16 @@ class Game:
 	# ------------------------------------------------------------------------------------
 	
 	def start_game(self):
-		events.print_introduction(player, self.display_width)
-		while not self.player.is_dead:
-			stats = [str(self.player.name), str(f"{self.player.get_health()}/{self.player.maximum_health}"),
-				str(self.player.equipped_weapon)]
+		self.run_start_sequence()
+		while not player.is_dead:
+			stats = [str(player.name), str(f"{player.get_health()}/{player.maximum_health}"),
+				str(player.equipped_weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
 			player_input = self.perform_event(header, self.events[events.next_event])
 			input()
 
-			if(self.player.is_dead):
+			if(player.is_dead):
 				events.death(self.display_width)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,7 +360,8 @@ class Game_Events:
 				"event": (f"In the center of this small chamber is a pile of gold dabloons, on top "
 					f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
 					f"hanging on the wall and an open door leading to another corridor."),
-				"options": ["Attempt to open the treasure chest.", "Investigate the weapons rack.", "Leave through the door.", "Save Game"],
+				"options": ["Attempt to open the treasure chest.", "Investigate the weapons rack.",
+					"Leave through the door.", "Save Game"],
 				"action": f"What should {player.name} do?",
 				"selection1": [
 					self.treasure_room_box_good,
@@ -304,13 +378,82 @@ class Game_Events:
 					self.treasure_room_leave_none
 				],
 				"selection4": [Utilities.save_game]
+			},
+			"tunnel_fork": {
+				"event": (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
+				 	f"{player.name} can hear faint sounds of rushing water. To the right a warm "
+					f"breeze is felt and the path curves up slightly."),
+				"options": ["Go left.", "Go right.", "Sing a song.", "Save Game"],
+				"action": f"What should {player.name} do?",
+				"selection1": [
+					self.tunnel_fork_left_good,
+					self.tunnel_fork_left_bad,
+					self.tunnel_fork_left_none,
+					self.monster,
+					self.nothing
+				],
+				"selection2": [
+					self.tunnel_fork_right_good,
+					self.tunnel_fork_right_bad,
+					self.tunnel_fork_right_none,
+					self.monster,
+					self.nothing
+				],
+				"selection3": [
+					self.tunnel_fork_sing_good,
+					self.tunnel_fork_sing_bad,
+					self.tunnel_fork_sing_none,
+					self.monster,
+					self.nothing					
+				],
+				"selection4": [Utilities.save_game]
 			}
 		}
+
+	# -------------------------------- Tunnel Fork Events --------------------------------
+	def tunnel_fork_left_good(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_left_bad(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_left_none(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+
+	def tunnel_fork_right_good(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_right_bad(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_right_none(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."		
+
+
+	def tunnel_fork_sing_good(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_sing_bad(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."
+
+	def tunnel_fork_sing_none(self, player: Player):
+		self.shuffle_events()
+		return "Placeholder text."		
 
 	# ---------------------------------- Hallway Events ----------------------------------
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
 		player.set_health(rand_num)
+		self.shuffle_events()
 		return (f"{player.name} steps on a trap! Oh no!"
 			f"\nFirey darts shoot out of the walls, but {player.name} quickly evades them. "
 			f"The burning darts illuminate a hole in the wall revealing a stashed potion. "
@@ -325,10 +468,12 @@ class Game_Events:
 			f"\n{death_message}")
 	
 	def hallway_trap_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} steps on a trap! Oh no!"
 			f"\n{player.name} braces for sudden pain but the trap appears to have been a dud. Phew!")
 	
 	def trip_good(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(10, 30)
 		player.set_health(rand_num)
 		return (f"{player.name} trips over a rock!"
@@ -336,6 +481,7 @@ class Game_Events:
 			f"\n{player.name} quickly grabs and gulps it down regaining {rand_num} health.")
 	
 	def trip_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(1, 20)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -344,6 +490,7 @@ class Game_Events:
 			f"\n{death_message}")
 	
 	def trip_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} trips over a rock!"
 			f"\nFortunately {player.name} landed in some nice soft mud. Every thing is fine.")
 	
@@ -351,6 +498,7 @@ class Game_Events:
 	def grate_good(self, player: Player):
 		rand_num = random.randint(15, 35)
 		player.set_health(rand_num)
+		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"On the way down the ladder {player.name} finds a potion dangling by a string on one "
 			f"of the ladder rungs. {player.name} pops the cork and gussles it regaining {rand_num} "
@@ -360,11 +508,13 @@ class Game_Events:
 		rand_num = random.randint(25, 40)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
+		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"While climbing down a rung on the ladder breaks loose! {player.name} falls and "
 			f"lands hard taking {rand_num} damage! Owiee! {death_message}")
 
 	def grate_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"{player.name} slides down the greasy ladder and springs into a fighting stance "
 		 	f"at the bottom. No attack comes.") 
@@ -384,6 +534,7 @@ class Game_Events:
 	# -------------------------------- Treasure Room Events ------------------------------
 	def treasure_room_box_good(self, player: Player):
 		rand_num = random.randint(0, 2)
+		self.shuffle_events()
 		items = ["compass", "vial of troll's blood", "magic ring"]
 		if rand_num == 0:
 			player.has_compass = True
@@ -404,6 +555,7 @@ class Game_Events:
 			f"wandering out the door forgetting that there was ever anything else in the room.")
 
 	def treasure_room_box_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(10, 15)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -413,12 +565,14 @@ class Game_Events:
 			f"{death_message}")
 
 	def treasure_room_box_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. It's "
 		  	f"locked and too heavy to move! As {player.name} attempts to pry the chest open "
 			f"the stone door to the room starts to slide closed. {player.name} dashes to the door "
 			f"to avoid being trapped and barely escapes! The door is now sealed tight.")
 
 	def treasure_room_rack_good(self, player: Player):
+		self.shuffle_events()
 		player.weapons.add("Sword")
 		return (f"{player.name} inspects the weapons on the rack. All are rusty or rotted away "
 		  	f"except for a shiny sword that appears to be in pristine condition. This might be "
@@ -427,12 +581,14 @@ class Game_Events:
 			f"cracks in the walls. {player.name} must have disturbed a nest and runs out of the room.")
 
 	def treasure_room_rack_none(self, player: Player):
+		self.shuffle_events()
 		return (f"Everything on the rack is rusted or rotted away. There is nothing useful here. "
 			f"Just then, swarms of venomous spiders begin emerging from cracks in the walls. "
 			f"{player.name} must have disturbed a nest and runs out of the room.")
 
 	def treasure_room_leave_good(self, player: Player):
 		player.weapons.add("Magic Book")
+		self.shuffle_events()
 		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
 		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
 			f"toward the exit. On a bookshelf by the door sits a lone tome. Maybe there is something "
@@ -441,6 +597,7 @@ class Game_Events:
 			f"actually a book of combat magic! Maybe this will help fight away the monsters!")
 
 	def treasure_room_leave_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(10, 15)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -450,6 +607,7 @@ class Game_Events:
 			f"door and falls taking {rand_num} damage! {death_message}")
 
 	def treasure_room_leave_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
 		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
 			f"toward the exit. {player.name} briefly looks back at the glittering prizes and "
@@ -500,6 +658,7 @@ class Game_Events:
 
 	# ----------------------------------- Gnome Events ---------------------------------
 	def nummy_gnomey_good(self, player: Player):
+		self.shuffle_events()
 		player.maximum_health += 30
 		return (f"The todler-sized gnome beings to squeak out in its happy little voice, \"I "
 			f"know a way out...\" when {player.name} suddenly pounces on it and begins feasting "
@@ -508,6 +667,7 @@ class Game_Events:
 			f"an increase in vitality. {player.name}'s maximum health increases!")
 	
 	def nummy_gnomey_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(10, 15)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -517,11 +677,13 @@ class Game_Events:
 			f"bad indegestion and takes {rand_num} damage. Gnomaalox! {death_message}")
 	
 	def nummy_gnomey_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} picks the startled gnome up by the head, and bites off one of "
 			f"its legs. The last gnome {player.name} ate tasted much better. {player.name} drops "
 			f"the gnome on the floor in disgust and lets it hop away.")	
 
 	def pokey_gnomey_good(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(15, 35)
 		player.set_health(rand_num)
 		return (f"{player.name} breaks a stick off of a sewer tree and suspiciously prods the "
@@ -530,16 +692,19 @@ class Game_Events:
 			f"{player.name} regains {rand_num} health!")
 	
 	def pokey_gnomey_bad(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} pulls a walking stick from their pocket and jabs the gnome in the "
 		  	f"eye. The gnome becomes enraged, growls, and viciously attacks {player.name}!")
 	
 	def pokey_gnomey_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} pulls out the breadstick left over from lunch and extends it "
 		  	f"toward the gnome. In a flash, the gnome snatches it away and gobbles it up. "
 			f"\"Thanks!\" it says as it dissapears into the darkness. {player.name} was going to "
 			f"eat that. How rude!")
 			  
 	def dirpy_gnomey_good(self, player: Player):
+		self.shuffle_events()
 		player.trolls_blood += 1
 		return (f"\"What are you doing here cute little guy?\" {player.name} asks. The gnome "
 		  	f"sniffles, and begins to tear up. \"Did you say 'cute'?\" After about five minutes "
@@ -550,16 +715,19 @@ class Game_Events:
 			f"to do that?")
 	
 	def dirpy_gnomey_bad(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} stares silently at the gnome. It sniffs and begins making an odd "
 			f"growling sound. The gnome begins increasing in size and transforms into a monster!")  
 		  	
 	def dirpy_gnomey_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} decides there is no time to entertain a short-stack and punts it "
 		  	f"down the nearest open grate. \"I can't reach the ground fast enough!\" it yells as "
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
 	# --------------------------------- Leprechaun Events --------------------------------
 	def leprechaun_bag_good(self, player: Player):
+		self.shuffle_events()
 		item_list = ["potion", "vial to troll's blood", "quarter staff"]
 		rand_item_num = random.randint(0, 2)
 		rand_health_num = random.randint(15, 25)
@@ -587,6 +755,7 @@ class Game_Events:
 			f"{player.name} pulls out a {item_list[rand_item_num]}! {item_description[rand_item_num]}")
 				  
 	def leprechaun_bag_bad(self, player: Player):
+		self.shuffle_events()
 		damage_type = random.randint(0, 4)
 		damage_amount = random.randint(5, 10)
 		player.set_health(-damage_amount)
@@ -601,6 +770,7 @@ class Game_Events:
 			f"{death_message}")
 
 	def leprechaun_bag_none(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(0,5)
 		rand_item = ["a pink stuffed bunny", "a solar-powered flashlight", "a stack of coupons ",
 			"a broken umbrella", "a soggy newspaper", "an AOL CD"]
@@ -611,6 +781,7 @@ class Game_Events:
 			f"smoke. 'Next time?'")
 	
 	def leprechaun_walk_good(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
 			f"sketchy character? Ain't nobody got time for that! As {player.name} starts to walk "
 			f"away, Stinky shouts, \"Wait! Perhaps ye be interested in finding a way out of this "
@@ -621,6 +792,7 @@ class Game_Events:
 			f"dirty work of monster slaying. {player.name} reluctantly agrees and wanders off.")
 
 	def leprechaun_walk_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(30, 50)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -630,13 +802,15 @@ class Game_Events:
 			f"was the leprechaun from THAT movie! {player.name} takes {rand_num} damage! {death_message}")
 	
 	def leprechaun_ask_good(self, player: Player):
-		player.set_health(player.maximum_health)
+		self.shuffle_events()
+		player.set_health(9999999)
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
 		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
 			f"{player.name} takes the bottle of purple liquid from Stinky and gulps it down. "
 			f"{player.name}'s health fully recovers! Wow! What else does Stinky... where'd he go?")
 		  
 	def leprechaun_ask_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(1, 30)
 		player.set_health(-rand_num)
 		death_message = player.check_for_death()
@@ -648,6 +822,7 @@ class Game_Events:
 			f"{death_message}")
 	
 	def leprechaun_ask_none(self, player: Player):
+		self.shuffle_events()
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. Stinky "
 			f"says excitedly, \"I'm glad ye asked! From the far reaches of Centrailia I have "
 			f"baubles, doodads, and gizmos. I have acquired 80 nickknacks from Grumblethorp! Ye "
@@ -658,6 +833,7 @@ class Game_Events:
 	
 	# ------------------------------- Miscellaneous Events -------------------------------
 	def monster(self, player: Player):
+		self.shuffle_events()
 		return f"Before {player.name} can act, a monster jumps out of the darkness!"
 
 	def weapon_treasure(self, player: Player):
@@ -674,7 +850,7 @@ class Game_Events:
 		print(f"{border}\n{death_message.center(width)}\n{game_over.center(width)}\n{border}")
 		input()
 
-	def print_introduction(self, player: Player, width):
+	def print_introduction(self, width):
 		print(Utilities.create_ruler(width, '~'))
 		header = "O U R   S T O R Y   B E G I N S".center(width)
 		opening_text = f'''My name is {player.name}. I fell down a hole while doing something stupid
@@ -687,11 +863,16 @@ class Game_Events:
 		print("[Enter] Labyrinthia".center(width))
 		print(Utilities.create_ruler(width, '~'))
 		input()
+
+	def shuffle_events(self):
+		events = ["hallway", "tunnel_fork"]
+		rand_num = random.randint(0,1)
+		self.next_event = events[rand_num]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if __name__ == "__main__":
 	player = Player()
 	events = Game_Events()
-	newGame = Game(player, events)
+	newGame = Game(events)
 	newGame.start_game()
