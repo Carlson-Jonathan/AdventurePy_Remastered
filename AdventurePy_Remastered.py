@@ -15,8 +15,12 @@ class Player:
 		self.trolls_blood = 0
 		self.invisibility_potions = 0
 		self.monsters_killed = 0
+		self.has_compass = False
+		self.has_map = False
+		self.has_magic_ring = False
 
 	def set_health(self, adjustment):
+		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
 		self.__health += adjustment
 		self.__health = min(self.__health, self.maximum_health)
 		self.__health = max(self.__health, 0)
@@ -39,7 +43,10 @@ class Player:
 			"trolls_blood": self.trolls_blood,
 			"is_dead": self.is_dead,
 			"invisibility_potions": self.invisibility_potions,
-			"monsters_killed": self.monsters_killed
+			"monsters_killed": self.monsters_killed,
+			"has_compass": self.has_compass,
+			"has_map": self.has_map,
+			"has_magic_ring": self.has_magic_ring
 		}
 
 
@@ -200,6 +207,7 @@ class Game_Events:
 				"options": ["Go down the corridor", "Climb down the grate", "Yell for help", "Save Game"],
 				"action": f"What will {player.name} do?",
 				"selection1": [
+					self.nothing,
 					self.monster,
 					self.hallway_trap_good,
 					self.hallway_trap_bad,
@@ -226,9 +234,7 @@ class Game_Events:
 					self.yell_collapse_bad,
 					self.yell_collapse_none
 				],
-				"selection4": [
-					Utilities.save_game
-				]
+				"selection4": [Utilities.save_game]
 			},
 			"gnome": {
 				"event": "The gnome looks delicious!",
@@ -249,9 +255,7 @@ class Game_Events:
 					self.pokey_gnomey_bad,
 					self.pokey_gnomey_none
 				],
-				"selection4": [
-					Utilities.save_game
-				]
+				"selection4": [Utilities.save_game]
 			},
 			"leprechaun": {
 				f"event": "The little green-dressed leprechaun, who looks like he came straight "
@@ -277,9 +281,29 @@ class Game_Events:
 					self.leprechaun_bag_bad,
 					self.leprechaun_bag_none
 				],
-				"selection4": [
-					Utilities.save_game
-				]
+				"selection4": [Utilities.save_game]
+			},
+			"treasure_room": {
+				"event": (f"In the center of this small chamber is a pile of gold dabloons, on top "
+					f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
+					f"hanging on the wall and an open door leading to another corridor."),
+				"options": ["Attempt to open the treasure chest.", "Investigate the weapons rack.", "Leave through the door.", "Save Game"],
+				"action": f"What should {player.name} do?",
+				"selection1": [
+					self.treasure_room_box_good,
+					self.treasure_room_box_bad,
+					self.treasure_room_box_none
+				],
+				"selection2": [
+					self.treasure_room_rack_good,
+					self.treasure_room_rack_none
+				],
+				"selection3": [
+					self.treasure_room_leave_good,
+					self.treasure_room_leave_bad,
+					self.treasure_room_leave_none
+				],
+				"selection4": [Utilities.save_game]
 			}
 		}
 
@@ -352,9 +376,84 @@ class Game_Events:
 			f"and turns to find a leprechaun sitting in a nook with a burlap sack.")
 
 	def grate_treasure_room(self, player: Player):
+		self.next_event = "treasure_room"
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"{player.name} drops down the hole and lands with a \"clink-clink-clatter\". What's "
 			f"this on the floor? {player.name} discovers a room full of treasure!")
+	
+	# -------------------------------- Treasure Room Events ------------------------------
+	def treasure_room_box_good(self, player: Player):
+		rand_num = random.randint(0, 2)
+		items = ["compass", "vial of troll's blood", "magic ring"]
+		if rand_num == 0:
+			player.has_compass = True
+		if rand_num == 1:
+			player.trolls_blood += 1
+		if rand_num == 2:
+			player.has_magic_ring = True
+		item_description = [
+			"This looks like it would go well with a map. Hmmm. ",
+			f"{player.name} swallows the contents of the vial. Tastes like- green. ",
+			(f"As {player.name} slips the ring on, {player.name} is surrounded in a dim light. "
+			f"\"My precious!\" All damage {player.name} takes will now be reduced by one third! "
+			f"Because I said so! Shut up and keep playing! ")
+		]
+		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. "
+			f"The chest creeks open. {player.name} finds a {items[rand_num]}! "
+			f"{item_description[rand_num]}{player.name} is pleased with the loot and stares at it "
+			f"wandering out the door forgetting that there was ever anything else in the room.")
+
+	def treasure_room_box_bad(self, player: Player):
+		rand_num = random.randint(10, 15)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. As the lid "
+			f"opens, {player.name} is sprayed in the face with posionous gas taking {rand_num} "
+			f"damage! Gas continues to fill the room and {player.name} is forced to flee. "
+			f"{death_message}")
+
+	def treasure_room_box_none(self, player: Player):
+		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. It's "
+		  	f"locked and too heavy to move! As {player.name} attempts to pry the chest open "
+			f"the stone door to the room starts to slide closed. {player.name} dashes to the door "
+			f"to avoid being trapped and barely escapes! The door is now sealed tight.")
+
+	def treasure_room_rack_good(self, player: Player):
+		player.weapons.add("Sword")
+		return (f"{player.name} inspects the weapons on the rack. All are rusty or rotted away "
+		  	f"except for a shiny sword that appears to be in pristine condition. This might be "
+			f"useful to fight off monsters! {player.name} takes the sword from the rack and jams "
+			f"it in a pocket. Ouch! Just then, swarms of venomous spiders begin emerging from "
+			f"cracks in the walls. {player.name} must have disturbed a nest and runs out of the room.")
+
+	def treasure_room_rack_none(self, player: Player):
+		return (f"Everything on the rack is rusted or rotted away. There is nothing useful here. "
+			f"Just then, swarms of venomous spiders begin emerging from cracks in the walls. "
+			f"{player.name} must have disturbed a nest and runs out of the room.")
+
+	def treasure_room_leave_good(self, player: Player):
+		player.weapons.add("Magic Book")
+		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
+		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
+			f"toward the exit. On a bookshelf by the door sits a lone tome. Maybe there is something "
+			f"in it that will help {player.name} escape this place. {player.name} grabs the book "
+			f"and walks out of the room. On closer inspection, {player.name} sees that the book is "
+			f"actually a book of combat magic! Maybe this will help fight away the monsters!")
+
+	def treasure_room_leave_bad(self, player: Player):
+		rand_num = random.randint(10, 15)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
+		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
+			f"toward the exit. Ironically, {player.name} slips on a pile of gold coins near the "
+			f"door and falls taking {rand_num} damage! {death_message}")
+
+	def treasure_room_leave_none(self, player: Player):
+		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
+		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
+			f"toward the exit. {player.name} briefly looks back at the glittering prizes and "
+			f"wonders if any of this stuff could have assisted in escaping. Maybe next time.")
 
 	# ----------------------------------- Yelling Events ---------------------------------
 	def yell_monster(self, player: Player):
@@ -460,7 +559,6 @@ class Game_Events:
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
 	# --------------------------------- Leprechaun Events --------------------------------
-
 	def leprechaun_bag_good(self, player: Player):
 		item_list = ["potion", "vial to troll's blood", "quarter staff"]
 		rand_item_num = random.randint(0, 2)
