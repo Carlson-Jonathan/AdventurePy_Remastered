@@ -7,11 +7,14 @@ import os
 class Player:
 	def __init__(self):
 		self.name = input("Enter your character's name: ")
-		self.weapon = "Fists"
+		self.weapons = {"Fists"}
+		self.equipped_weapon = "Fists"
 		self.maximum_health = 100
 		self.__health = 100
 		self.is_dead = False
 		self.trolls_blood = 0
+		self.invisibility_potions = 0
+		self.monsters_killed = 0
 
 	def set_health(self, adjustment):
 		self.__health += adjustment
@@ -25,14 +28,18 @@ class Player:
 		self.is_dead = bool(self.__health <= 0)
 		return f"Having lost all health, {player.name} falls lifeless to the ground." if self.is_dead else ""
 	
+	# For serializing the object for json (saving games)
 	def to_dict(self):
 		return {
 			"name": self.name,
-			"weapon": self.weapon,
+			"weapons": list(self.weapons),
+			"equipped_weapon": self.equipped_weapon,
 			"health": self.__health,
 			"maximum_health": self.maximum_health,
 			"trolls_blood": self.trolls_blood,
-			"is_dead": self.is_dead
+			"is_dead": self.is_dead,
+			"invisibility_potions": self.invisibility_potions,
+			"monsters_killed": self.monsters_killed
 		}
 
 
@@ -172,7 +179,7 @@ class Game:
 		events.print_introduction(player, self.display_width)
 		while not self.player.is_dead:
 			stats = [str(self.player.name), str(f"{self.player.get_health()}/{self.player.maximum_health}"),
-				str(self.player.weapon)]
+				str(self.player.equipped_weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
 			player_input = self.perform_event(header, self.events[events.next_event])
@@ -186,7 +193,6 @@ class Game:
 class Game_Events:
 	def __init__(self):
 		self.next_event = "hallway"
-		self.eventOptions = {"hallway": 7, "gnome": 3}
 
 		self.game_data = {
 			"hallway": {
@@ -242,6 +248,34 @@ class Game_Events:
 					self.pokey_gnomey_good,
 					self.pokey_gnomey_bad,
 					self.pokey_gnomey_none
+				],
+				"selection4": [
+					Utilities.save_game
+				]
+			},
+			"leprechaun": {
+				f"event": "The little green-dressed leprechaun, who looks like he came straight "
+					f"off a cereal box, dives right into pleasantries and introduces himself as "
+					f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
+					f"bag open in front of {player.name}. Where has {player.name} heard that line "
+					f"before? It looks like there are several things in that bag but for some "
+					f"reason, {player.name} knows only to take one item. Can this leprechaun be "
+					f"trusted?",
+				"options": ["Ask what is in the bag.", "Walk away.", "Reach in and grab something.", "Save Game"],
+				"action": f"What should {player.name} do?",
+				"selection1": [
+					self.leprechaun_ask_good,
+					self.leprechaun_ask_bad,
+					self.leprechaun_ask_none
+				],
+				"selection2": [
+					self.leprechaun_walk_good,
+					self.leprechaun_walk_bad
+				],
+				"selection3": [
+					self.leprechaun_bag_good,
+					self.leprechaun_bag_bad,
+					self.leprechaun_bag_none
 				],
 				"selection4": [
 					Utilities.save_game
@@ -312,6 +346,7 @@ class Game_Events:
 		 	f"at the bottom. No attack comes.") 
 
 	def grate_leprechaun(self, player: Player):
+		self.next_event = "leprechaun"
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"After methodically stepping down the ladder, {player.name} splashes into a puddle "
 			f"and turns to find a leprechaun sitting in a nook with a burlap sack.")
@@ -424,8 +459,105 @@ class Game_Events:
 		  	f"down the nearest open grate. \"I can't reach the ground fast enough!\" it yells as "
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
-			
+	# --------------------------------- Leprechaun Events --------------------------------
 
+	def leprechaun_bag_good(self, player: Player):
+		item_list = ["potion", "vial to troll's blood", "quarter staff"]
+		rand_item_num = random.randint(0, 2)
+		rand_health_num = random.randint(15, 25)
+		
+		player.set_health(rand_health_num if rand_item_num == 0 else 0)
+		if(rand_item_num == 2):
+			player.trolls_blood += 1
+		if(rand_item_num == 2):
+			player.weapons.add("Staff")
+
+		item_description = [
+			f"Just what {player.name} needed! {player.name} pops the lid and gulps it down "
+				f"regaining {rand_health_num} health! {player.name} then bids farewell to "
+				f"Stinky. Maybe {player.name} will encounter him again?",
+			f"Well that sure looks tasty! {player.name} tips the contents of the vile and "
+				f"gulps it down. \"No! You are supposed to... oh nevermind.\" Stinky says as "
+				f"{player.name} licks the remaining fluid from the opening of the vile. Feeling "
+				f"a bit loopy, {player.name} wanders away toward visions of sugar plumbs.",
+			f"How did Stinky fit a 6' pole in that little sack? What does it matter? {player.name} "
+				f"should be able to use this to fight back the monsters. "
+				f"\n\tNew weapon: Staff - Occasionally lands multiple blows to monsters."
+		]
+
+		return (f"{player.name} reaches blindly into the bag and grabs ahold of something. "
+			f"{player.name} pulls out a {item_list[rand_item_num]}! {item_description[rand_item_num]}")
+				  
+	def leprechaun_bag_bad(self, player: Player):
+		damage_type = random.randint(0, 4)
+		damage_amount = random.randint(5, 10)
+		player.set_health(-damage_amount)
+		death_message = player.check_for_death()
+		damage_event = ["bit by a venomous spider ", "stung by a scorpion ", "bit by a snake ",
+			"stung by a large wasp ", "pricked by a rusty nail "]
+		return (f"{player.name} reaches blindly into the bag and grabs ahold of something. "
+			f"Oww! {player.name} was {damage_event[damage_type]} inside the bag and takes "
+			f"{damage_amount} health damage! \"Sorry fer that,\" Stinky says unapologetically, "
+			f"\"but ye are only allowed to reach into this here bag once per visit.\" Stinky "
+			f"ties his bag shut and scurries off. How unfortunate. Maybe you will see him again? "
+			f"{death_message}")
+
+	def leprechaun_bag_none(self, player: Player):
+		rand_num = random.randint(0,5)
+		rand_item = ["a pink stuffed bunny", "a solar-powered flashlight", "a stack of coupons ",
+			"a broken umbrella", "a soggy newspaper", "an AOL CD"]
+		return (f"{player.name} reaches blindly into the bag and grabs ahold of something. "
+		  	f"{player.name} pulls {rand_item[rand_num]} out of the bag. Great. This will be "
+			f"so useful as {player.name} struggles for life in a hostile underworld. \"Thank you "
+			f"fer yer business. See ya next time!\" says Stinky as he dissapears in a cloud of "
+			f"smoke. 'Next time?'")
+	
+	def leprechaun_walk_good(self, player: Player):
+		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
+			f"sketchy character? Ain't nobody got time for that! As {player.name} starts to walk "
+			f"away, Stinky shouts, \"Wait! Perhaps ye be interested in finding a way out of this "
+			f"here dark maze. I have a map, see, that will show ya how to escape, but I'll only "
+			f"give it to ya if you rid this dungeon of at least 5 monsters. Also, you will be "
+			f"need'n a compass to use it, but I don't have one. What do ya say?\" It sounds "
+			f"like {player.name} doesn't have much of a choice and agrees to do the leprechaun's "
+			f"dirty work of monster slaying. {player.name} reluctantly agrees and wanders off.")
+
+	def leprechaun_walk_bad(self, player: Player):
+		rand_num = random.randint(30, 50)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
+			f"sketchy character? Ain't nobody got time for that! As {player.name} turns around to walk "
+			f"away, Stinky pulls a knife from his bag and stabs {player.name} in the back! Oh no! It "
+			f"was the leprechaun from THAT movie! {player.name} takes {rand_num} damage! {death_message}")
+	
+	def leprechaun_ask_good(self, player: Player):
+		player.set_health(player.maximum_health)
+		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
+		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
+			f"{player.name} takes the bottle of purple liquid from Stinky and gulps it down. "
+			f"{player.name}'s health fully recovers! Wow! What else does Stinky... where'd he go?")
+		  
+	def leprechaun_ask_bad(self, player: Player):
+		rand_num = random.randint(1, 30)
+		player.set_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
+		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
+			f"{player.name} takes the bottle of inky liquid from Stinky and gulps it down. "
+			f"{player.name} becomes momentarily blind and walks into the wall taking {rand_num} "
+			f"damage! When {player.name}'s vision returns, Stinky is gone. That little troll! "
+			f"{death_message}")
+	
+	def leprechaun_ask_none(self, player: Player):
+		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. Stinky "
+			f"says excitedly, \"I'm glad ye asked! From the far reaches of Centrailia I have "
+			f"baubles, doodads, and gizmos. I have acquired 80 nickknacks from Grumblethorp! Ye "
+			f"want thingamajigs? I've got 20! But who cares? No big deal. I've got more!\" Stinky "
+			f"continues on and on listing non-sensical items he has proudly acquired from places "
+			f"that sound entirely made up. {player.name}'s eyes begin to glaze over. "
+			f"After 10 minutes of this {player.name} decides to wander off.")
+	
 	# ------------------------------- Miscellaneous Events -------------------------------
 	def monster(self, player: Player):
 		return f"Before {player.name} can act, a monster jumps out of the darkness!"
@@ -453,7 +585,8 @@ class Game_Events:
 			and I need you to help me get out! Guide me through the events using the prompts and
 			help me stay alive and escape! Good luck!'''
 		print(f"{header}\n{Utilities.wrap_text(opening_text, width)}\n")
-		print("Are you ready to begin your adventure?    < [Enter] Labyrinthia >")
+		print(f"Are you ready to begin your adventure?".center(width))
+		print("[Enter] Labyrinthia".center(width))
 		print(Utilities.create_ruler(width, '~'))
 		input()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
