@@ -222,9 +222,11 @@ class Utilities:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class Game:
-	def __init__(self, events: 'Game_Events' = None):
-		self.events = events.game_data
+	def __init__(self):
+		self.game_events = Game_Events()
+		self.events_data = self.game_events.game_data
 		self.display_width = 75
+		self.start_game()
 
 	# ------------------------------------------------------------------------------------
 		
@@ -234,7 +236,7 @@ class Game:
 			player.name = input("Enter your character's name: ")
 			Utilities.clear_screen()
 			Utilities.print_title()
-			events.print_introduction(self.display_width)
+			self.game_events.print_introduction(self.display_width)
 		else:
 			Utilities.load_game(self.display_width)
 		
@@ -246,7 +248,7 @@ class Game:
 
 		Utilities.draw_game_frame(header, event["event"], options, event["action"], self.display_width)
 		player_input = Utilities.get_player_input("Action: ", num_options)
-		selection_size = len(self.events[events.next_event][f"selection{player_input}"])
+		selection_size = len(self.events_data[self.game_events.next_event][f"selection{player_input}"])
 		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
 		outcome = event[f"selection{player_input}"][random_num](player)
 		Utilities.draw_game_frame(header, event["event"], options, outcome, self.display_width)
@@ -258,15 +260,16 @@ class Game:
 	def start_game(self):
 		self.run_start_sequence()
 		while not player.is_dead:
+			self.game_events.refresh_event_data()
 			stats = [str(player.name), str(f"{player.get_health()}/{player.maximum_health}"),
 				str(player.equipped_weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
-			player_input = self.perform_event(header, self.events[events.next_event])
+			player_input = self.perform_event(header, self.events_data[self.game_events.next_event])
 			input()
 
 			if(player.is_dead):
-				events.death(self.display_width)
+				self.game_events.death(self.display_width)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~				
@@ -868,11 +871,33 @@ class Game_Events:
 		events = ["hallway", "tunnel_fork"]
 		rand_num = random.randint(0,1)
 		self.next_event = events[rand_num]
+
+	# This is needed because player.name is initially set and does not change.
+	def refresh_event_data(self):
+		self.game_data["hallway"]["event"] = f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead."
+		self.game_data["hallway"]["action"] = f"What will {player.name} do?"
+		self.game_data["gnome"]["action"] = f"Should {player.name} eat it?"
+		self.game_data["leprechaun"]["event"] = (
+			f"The little green-dressed leprechaun, who looks like he came straight "
+			f"off a cereal box, dives right into pleasantries and introduces himself as "
+			f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
+			f"bag open in front of {player.name}. Where has {player.name} heard that line "
+			f"before? It looks like there are several things in that bag but for some "
+			f"reason, {player.name} knows only to take one item. Can this leprechaun be "
+			f"trusted?")
+		self.game_data["leprechaun"]["action"] = f"What should {player.name} do?"
+		self.game_data["treasure_room"]["action"] = f"What should {player.name} do?"
+		self.game_data["tunnel_fork"]["action"] = f"What should {player.name} do?"
+		self.game_data["tunnel_fork"]["event"] = (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
+				 	f"{player.name} can hear faint sounds of rushing water. To the right a warm "
+					f"breeze is felt and the path curves up slightly.")
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Bugs:
+#	player.health value doesn't load
+#	event_data references don't update			
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if __name__ == "__main__":
 	player = Player()
-	events = Game_Events()
-	newGame = Game(events)
-	newGame.start_game()
+	Game()
