@@ -10,7 +10,7 @@ class Player:
 		self.weapons = {"Fists"}
 		self.equipped_weapon = "Fists"
 		self.maximum_health = 100
-		self.__health = 100
+		self.health = 100
 		self.is_dead = False
 		self.trolls_blood = 0
 		self.invisibility_potions = 0
@@ -19,17 +19,14 @@ class Player:
 		self.has_map = False
 		self.has_magic_ring = False
 
-	def set_health(self, adjustment):
+	def modify_health(self, adjustment):
 		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
-		self.__health += adjustment
-		self.__health = min(self.__health, self.maximum_health)
-		self.__health = max(self.__health, 0)
+		self.health += adjustment
+		self.health = min(self.health, self.maximum_health)
+		self.health = max(self.health, 0)
 
-	def get_health(self):
-		return self.__health
-	
 	def check_for_death(self):
-		self.is_dead = bool(self.__health <= 0)
+		self.is_dead = bool(self.health <= 0)
 		return f"Having lost all health, {player.name} falls lifeless to the ground." if self.is_dead else ""
 	
 	# For serializing the object for json (saving games)
@@ -38,7 +35,7 @@ class Player:
 			"name": self.name,
 			"weapons": list(self.weapons),
 			"equipped_weapon": self.equipped_weapon,
-			"health": self.__health,
+			"health": self.health,
 			"maximum_health": self.maximum_health,
 			"trolls_blood": self.trolls_blood,
 			"is_dead": self.is_dead,
@@ -216,6 +213,7 @@ class Utilities:
 		game_to_load = Utilities.get_game_to_load(width)
 		save_data = Utilities.get_save_data(game_to_load)
 		player.__dict__.update(save_data)
+		player.modify_health
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,7 +259,7 @@ class Game:
 		self.run_start_sequence()
 		while not player.is_dead:
 			self.game_events.refresh_event_data()
-			stats = [str(player.name), str(f"{player.get_health()}/{player.maximum_health}"),
+			stats = [str(player.name), str(f"{player.health}/{player.maximum_health}"),
 				str(player.equipped_weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
@@ -455,7 +453,7 @@ class Game_Events:
 	# ---------------------------------- Hallway Events ----------------------------------
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
-		player.set_health(rand_num)
+		player.modify_health(rand_num)
 		self.shuffle_events()
 		return (f"{player.name} steps on a trap! Oh no!"
 			f"\nFirey darts shoot out of the walls, but {player.name} quickly evades them. "
@@ -464,7 +462,7 @@ class Game_Events:
 	
 	def hallway_trap_bad(self, player: Player):
 		rand_num = random.randint(20, 30)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} steps on a trap! Oh no!"
 			f"\nFirey darts shoot out of the walls wounding {player.name} and causing {rand_num} reduction in health!"
@@ -478,7 +476,7 @@ class Game_Events:
 	def trip_good(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 30)
-		player.set_health(rand_num)
+		player.modify_health(rand_num)
 		return (f"{player.name} trips over a rock!"
 			f"\nAfter getting up and dusting off, {player.name} sees that the rock was actually a health potion!"
 			f"\n{player.name} quickly grabs and gulps it down regaining {rand_num} health.")
@@ -486,7 +484,7 @@ class Game_Events:
 	def trip_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(1, 20)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} trips over a rock!"
 			f"\n{player.name} face plants into the hard floor and takes {rand_num} damage! Ouch!"
@@ -500,7 +498,7 @@ class Game_Events:
 	# -------------------------------- Sewer Grate Events --------------------------------
 	def grate_good(self, player: Player):
 		rand_num = random.randint(15, 35)
-		player.set_health(rand_num)
+		player.modify_health(rand_num)
 		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"On the way down the ladder {player.name} finds a potion dangling by a string on one "
@@ -509,7 +507,7 @@ class Game_Events:
 
 	def grate_bad(self, player: Player):
 		rand_num = random.randint(25, 40)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
@@ -560,7 +558,7 @@ class Game_Events:
 	def treasure_room_box_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 15)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. As the lid "
 			f"opens, {player.name} is sprayed in the face with posionous gas taking {rand_num} "
@@ -602,7 +600,7 @@ class Game_Events:
 	def treasure_room_leave_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 15)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
 		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
@@ -623,7 +621,7 @@ class Game_Events:
 
 	def yell_throat_hurts(self, player: Player):
 		rand_num = random.randint(1, 10)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} hollers as loud as possible for several minutes. {player.name}'s "
 		  	f"throat now hurts from yelling and takes {rand_num} damage. (Way to go.) "
@@ -641,14 +639,14 @@ class Game_Events:
 	
 	def yell_collapse_good(self, player: Player):
 		rand_num = random.randint(15, 35)
-		player.set_health(rand_num)
+		player.modify_health(rand_num)
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. A potion "
 		  	f"bottle randomly rolls out of a pipe in the wall! {player.name} slurps it up and "
 			f"regains {rand_num} health!")
 
 	def yell_collapse_bad(self, player: Player):
 		rand_num = random.randint(10, 15)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. "
 			f"Rocks begin to fall from above and and strike {player.name} on the head! "
@@ -672,7 +670,7 @@ class Game_Events:
 	def nummy_gnomey_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 15)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"Gnomercy! The cuddly little gnome squeaks in terror as {player.name} lunges "
 		  	f"toward it drooling. Its retreat is in vain as {player.name} scoops the squirmy "
@@ -688,7 +686,7 @@ class Game_Events:
 	def pokey_gnomey_good(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(15, 35)
-		player.set_health(rand_num)
+		player.modify_health(rand_num)
 		return (f"{player.name} breaks a stick off of a sewer tree and suspiciously prods the "
 		  	f" gnoblin. The gnome suddenly pops into a shower of confetti leaving only its pointed "
 			f"hat behind. Picking it up {player.name} finds a potion inside and chugs it. "
@@ -735,7 +733,7 @@ class Game_Events:
 		rand_item_num = random.randint(0, 2)
 		rand_health_num = random.randint(15, 25)
 		
-		player.set_health(rand_health_num if rand_item_num == 0 else 0)
+		player.modify_health(rand_health_num if rand_item_num == 0 else 0)
 		if(rand_item_num == 2):
 			player.trolls_blood += 1
 		if(rand_item_num == 2):
@@ -761,7 +759,7 @@ class Game_Events:
 		self.shuffle_events()
 		damage_type = random.randint(0, 4)
 		damage_amount = random.randint(5, 10)
-		player.set_health(-damage_amount)
+		player.modify_health(-damage_amount)
 		death_message = player.check_for_death()
 		damage_event = ["bit by a venomous spider ", "stung by a scorpion ", "bit by a snake ",
 			"stung by a large wasp ", "pricked by a rusty nail "]
@@ -797,7 +795,7 @@ class Game_Events:
 	def leprechaun_walk_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(30, 50)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
 			f"sketchy character? Ain't nobody got time for that! As {player.name} turns around to walk "
@@ -806,7 +804,7 @@ class Game_Events:
 	
 	def leprechaun_ask_good(self, player: Player):
 		self.shuffle_events()
-		player.set_health(9999999)
+		player.modify_health(9999999)
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
 		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
 			f"{player.name} takes the bottle of purple liquid from Stinky and gulps it down. "
@@ -815,7 +813,7 @@ class Game_Events:
 	def leprechaun_ask_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(1, 30)
-		player.set_health(-rand_num)
+		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
 		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
@@ -872,7 +870,7 @@ class Game_Events:
 		rand_num = random.randint(0,1)
 		self.next_event = events[rand_num]
 
-	# This is needed because player.name is initially set and does not change.
+	# This is needed because player.name is initially set and does not change (bug fix)
 	def refresh_event_data(self):
 		self.game_data["hallway"]["event"] = f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead."
 		self.game_data["hallway"]["action"] = f"What will {player.name} do?"
@@ -893,9 +891,6 @@ class Game_Events:
 					f"breeze is felt and the path curves up slightly.")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Bugs:
-#	player.health value doesn't load
-#	event_data references don't update			
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if __name__ == "__main__":
