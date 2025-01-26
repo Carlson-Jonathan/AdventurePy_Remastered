@@ -1,285 +1,8 @@
-from pathlib import Path
-import subprocess
+from .utilities import Utilities
+from .player import Player
 import random
-import json
-import os
-
-class Player:
-	def __init__(self):
-		self.name = "Anonymous"
-		self.weapons = {"Fists"}
-		self.equipped_weapon = "Fists"
-		self.maximum_health = 100
-		self.health = 100
-		self.is_dead = False
-		self.trolls_blood = 0
-		self.invisibility_potions = 0
-		self.monsters_killed = 0
-		self.has_compass = False
-		self.has_map = False
-		self.has_magic_ring = False
-		self.treasure_keys = 0
-
-	def modify_health(self, adjustment):
-		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
-		self.health += adjustment
-		self.health = min(self.health, self.maximum_health)
-		self.health = max(self.health, 0)
-
-	def check_for_death(self):
-		self.is_dead = bool(self.health <= 0)
-		return f"Having lost all health, {player.name} falls lifeless to the ground." if self.is_dead else ""
-	
-	# For serializing the object for json (saving games)
-	def to_dict(self):
-		return {
-			"name": self.name,
-			"weapons": list(self.weapons),
-			"equipped_weapon": self.equipped_weapon,
-			"health": self.health,
-			"maximum_health": self.maximum_health,
-			"trolls_blood": self.trolls_blood,
-			"is_dead": self.is_dead,
-			"invisibility_potions": self.invisibility_potions,
-			"monsters_killed": self.monsters_killed,
-			"has_compass": self.has_compass,
-			"has_map": self.has_map,
-			"has_magic_ring": self.has_magic_ring,
-			"treasure_keys": self.treasure_keys
-		}
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		
-class Utilities:
-	def clear_screen():
-		command = 'cls' if os.name == 'nt' else 'clear'
-		subprocess.call(command, shell=True)
-
-	# ------------------------------------------------------------------------------------
-
-	def get_player_input(prompt, num_options):
-		while True:
-			player_input = input(prompt)
-			if player_input.isdigit() and 0 < int(player_input) <= num_options:
-				return int(player_input)
-			else:
-				print("Invalid input. Try again.")
-
-	# ------------------------------------------------------------------------------------				
-
-	def create_ruler(length = 50, character = '~'):
-		return character * length
-	
-	# ------------------------------------------------------------------------------------
-	
-	def draw_game_frame(header, scenario, options, outcome, width):
-		Utilities.clear_screen()
-		Utilities.print_title()
-		border = Utilities.create_ruler(width)
-		print(
-			f"{border}\n"
-			f"{header}\n"
-			f"{border}\n"
-			f"{Utilities.wrap_text(scenario, width)}\n"
-			f"{border}\n"
-			f"{options}\n"
-			f"{border}\n"
-			f"{Utilities.wrap_text(outcome, width)}\n"
-			f"{border}")
-		
-	# ------------------------------------------------------------------------------------
-
-	def create_table_header(headers, table_width, stats):
-		header_list = [header.strip() for header in headers.split(",")]
-		num_columns = len(header_list)
-		column_width = table_width // num_columns
-		header_row = "".join(header.center(column_width) for header in header_list)
-		stats_row = "".join(stat.center(column_width) for stat in stats)
-		separator_length = max(len(header_row), len(stats_row))
-		separator = Utilities.create_ruler(int(table_width * 0.75), '-').center(table_width)
-
-		return f"{header_row}\n{separator}\n{stats_row}"
-	
-	# ------------------------------------------------------------------------------------
-	
-	def wrap_text(text, width):
-		words = text.split()
-		lines = []
-		current_line = ""
-
-		for word in words:
-			if len(current_line) + len(word) + 1 > width:
-				lines.append(current_line.strip())
-				current_line = word
-			else:
-				current_line += " " + word
-
-		if current_line:
-			lines.append(current_line.strip())
-
-		return "\n".join(lines)
-	
-	# ------------------------------------------------------------------------------------
-
-	def format_options(items):
-		result = []
-		for i, item in enumerate(items, start = 1):
-			result.append(f"\t{i}: {item}")
-		return "\n".join(result)
-	
-	# ------------------------------------------------------------------------------------
-
-	def print_title():
-		print('''
-	 _           _                _       _   _     _       
-	| |         | |              (_)     | | | |   (_)      
-	| |     __ _| |__  _   _ _ __ _ _ __ | |_| |__  _  __ _ 
-	| |    / _` | '_ \\| | | | '__| | '_ \\| __| '_ \\| |/ _` |
-	| |___| (_| | |_) | |_| | |  | | | | | |_| | | | | (_| |
-   	\\_____/\\__,_|_.__/ \\__, |_|  |_|_| |_|\\__|_| |_|_|\\__,_|
-		   	   __/  |                               
-			  |____/  
-''')
-		
-	# ------------------------------------------------------------------------------------
-
-	def save_game(player: Player):
-		player_string = json.dumps(player.to_dict(), indent = 4)
-		current_dir = Path(__file__).parent
-		save_file = current_dir / f"{player.name}.sav"
-		with save_file.open(mode="w") as file:
-			file.write(player_string)
-		return (f"{player.name} pauses for a moment of meditation. {player.name} feels a strange "
-			f"bond with the surrounding area. (Game saved as \"{player.name}.sav\")")
-	
-	# ------------------------------------------------------------------------------------
-
-	def get_save_files():
-		current_dir = Path(__file__).parent
-		file_paths = current_dir.glob("*.sav")
-		return [file.name for file in file_paths]
-	
-	# ------------------------------------------------------------------------------------
-
-	def get_game_to_load(width):
-		save_files = Utilities.get_save_files()
-		if not save_files:
-			print("Error: No saved games were found in the current working directory.")
-			exit()
-		else:
-			file_options = Utilities.format_options(save_files)
-			player_input = int(Utilities.format_opening_menus(file_options, len(file_options),
-				"Select a save to load: ", "str", width))
-		return save_files[player_input - 1]
-
-	# ------------------------------------------------------------------------------------
-
-	def show_save_load_prompt(width):
-		options = Utilities.format_options(["New Game", "Load Saved Game"])
-		return Utilities.format_opening_menus(options, len(options),
-			"Make your selection: ", "num", width)
-	
-	# ------------------------------------------------------------------------------------
-
-	def format_opening_menus(options, num_options, prompt, prompt_type, width):
-		border = Utilities.create_ruler(width, '~')
-		Utilities.clear_screen()
-		Utilities.print_title()
-		print(border + "\n")
-		print(options)
-		print("\n" + border)
-		if prompt_type == "num":
-			return Utilities.get_player_input(prompt, num_options)
-		else:
-			return input(prompt)
-		
-	# ------------------------------------------------------------------------------------		
-		
-	def get_save_data(game_to_load):
-		try:
-			file_path = Path(game_to_load).resolve()
-			with file_path.open("r") as file:
-				data = json.load(file)
-			return data
-		except json.JSONDecodeError:
-			print("Error: The file does not contain valid JSON.")
-		except FileNotFoundError:
-			print(f"Error: The file '{game_to_load}' was not found.")
-		return None
-
-	# ------------------------------------------------------------------------------------
-
-	def load_game(width):
-		game_to_load = Utilities.get_game_to_load(width)
-		save_data = Utilities.get_save_data(game_to_load)
-		player.__dict__.update(save_data)
-
-		# player.weapons should be a set to prevent duplicate items. However, JSON cannot handle
-		# sets so this must be converted to a list prior to saving. On load, this converts the saved
-		# list back to a set.
-		if isinstance(player.weapons, list):
-			player.weapons = set(player.weapons)
-		player.modify_health
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-class Game:
-	def __init__(self):
-		self.game_events = Game_Events()
-		self.events_data = self.game_events.game_data
-		self.display_width = 75
-		self.start_game()
-
-	# ------------------------------------------------------------------------------------
-		
-	def run_start_sequence(self):
-		player_input = Utilities.show_save_load_prompt(self.display_width)
-		if player_input == 1:
-			player.name = input("Enter your character's name: ")
-			Utilities.clear_screen()
-			Utilities.print_title()
-			self.game_events.print_introduction(self.display_width)
-		else:
-			Utilities.load_game(self.display_width)
-		
-	# ------------------------------------------------------------------------------------
-
-	def perform_event(self, header, event):
-		num_options = len(event["options"])
-		options = Utilities.format_options(event["options"])
-
-		Utilities.draw_game_frame(header, event["event"](), options, event["action"](), self.display_width)
-		player_input = Utilities.get_player_input("Action: ", num_options)
-		selection_size = len(self.events_data[self.game_events.next_event][f"selection{player_input}"])
-		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
-		outcome = event[f"selection{player_input}"][random_num](player)
-		Utilities.draw_game_frame(header, event["event"](), options, outcome, self.display_width)
-
-		return player_input
-	
-	# ------------------------------------------------------------------------------------
-	
-	def start_game(self):
-		self.run_start_sequence()
-		while not player.is_dead:
-			stats = [str(player.name), str(f"{player.health}/{player.maximum_health}"),
-				str(player.equipped_weapon)]
-			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
-
-			player_input = self.perform_event(header, self.events_data[self.game_events.next_event])
-			print("I am manually adding a Staff to your weapons!")
-			player.weapons.add("Cupcake")
-			input()
-
-			if(player.is_dead):
-				self.game_events.death(self.display_width)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~				
 class Game_Events:
 	def __init__(self):
 		self.next_event = "hallway"
@@ -412,7 +135,7 @@ class Game_Events:
 		}
 
 	# -------------------------------- Tunnel Fork Events --------------------------------
-	def tunnel_fork_event(self):
+	def tunnel_fork_event(self, player: Player):
 		return (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
 			f"{player.name} can hear faint sounds of rushing water. To the right a warm "
 			"breeze is felt and the path curves up slightly. ")
@@ -518,7 +241,7 @@ class Game_Events:
 
 	# ---------------------------------- Hallway Events ----------------------------------
 
-	def hallway_event(self):
+	def hallway_event(self, player: Player):
 		return (f"{player.name} is in a long, dark cobblestone corridor. Spider webs coat the "
 			f"ceiling and lit torches line the walls as if someone were here recently. "
 			f"{player.name} sees a sewer grate about 20 feet ahead. There don't seem to be "
@@ -612,7 +335,7 @@ class Game_Events:
 			f"this on the floor? {player.name} discovers a room full of treasure!")
 	
 	# -------------------------------- Treasure Room Events ------------------------------
-	def treasure_room_event(self):
+	def treasure_room_event(self, player: Player):
 		return (f"In the center of this small chamber is a pile of gold dabloons, on top "
 			f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
 			f"hanging on the wall and an open door leading to another corridor. ")
@@ -742,10 +465,10 @@ class Game_Events:
 			f"important passages. Oops!")
 
 	# ----------------------------------- Gnome Events ---------------------------------
-	def gnome_event(self):
+	def gnome_event(self, player: Player):
 		return "The gnome looks delicious!"
 
-	def gnome_action(self):
+	def gnome_action(self, player: Player):
 		return f"Should {player.name} eat it?"		
 
 	def nummy_gnomey_good(self, player: Player):
@@ -817,7 +540,7 @@ class Game_Events:
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
 	# --------------------------------- Leprechaun Events --------------------------------
-	def leprechaun_event(self):
+	def leprechaun_event(self, player: Player):
 		return (f"The little green-dressed leprechaun, who looks like he came straight "
 			f"off a cereal box, dives right into pleasantries and introduces himself as "
 			f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
@@ -955,7 +678,7 @@ class Game_Events:
 		print(f"{border}\n{death_message.center(width)}\n{game_over.center(width)}\n{border}")
 		input()
 
-	def print_introduction(self, width):
+	def print_introduction(self, player: Player, width):
 		print(Utilities.create_ruler(width, '~'))
 		header = "O U R   S T O R Y   B E G I N S".center(width)
 		opening_text = f'''My name is {player.name}. I fell down a hole while doing something stupid
@@ -1026,12 +749,5 @@ class Game_Events:
 		rand_num = random.randint(0,1)
 		self.next_event = events[rand_num]
 		
-	def generic_action_prompt(self):
+	def generic_action_prompt(self, player: Player):
 		return f"What should {player.name} do?"
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-if __name__ == "__main__":
-	player = Player()
-	Game()
