@@ -215,6 +215,12 @@ class Utilities:
 		game_to_load = Utilities.get_game_to_load(width)
 		save_data = Utilities.get_save_data(game_to_load)
 		player.__dict__.update(save_data)
+
+		# player.weapons should be a set to prevent duplicate items. However, JSON cannot handle
+		# sets so this must be converted to a list prior to saving. On load, this converts the saved
+		# list back to a set.
+		if isinstance(player.weapons, list):
+			player.weapons = set(player.weapons)
 		player.modify_health
 
 
@@ -265,6 +271,8 @@ class Game:
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
 
 			player_input = self.perform_event(header, self.events_data[self.game_events.next_event])
+			print("I am manually adding a Staff to your weapons!")
+			player.weapons.add("Cupcake")
 			input()
 
 			if(player.is_dead):
@@ -294,7 +302,6 @@ class Game_Events:
 				],
 				"selection2": [
 					self.monster,
-					self.nothing,
 					self.grate_good,
 					self.grate_bad,
 					self.grate_none,
@@ -308,7 +315,7 @@ class Game_Events:
 					self.yell_none,
 					self.yell_collapse_good,
 					self.yell_collapse_bad,
-					self.yell_collapse_none
+					self.yell_collapse_none,
 				],
 				"selection4": [Utilities.save_game]
 			},
@@ -383,14 +390,14 @@ class Game_Events:
 					self.tunnel_fork_left_bad,
 					self.tunnel_fork_left_none,
 					self.monster,
-					self.nothing
+					self.nothing,
+					self.find_treasure_chest
 				],
 				"selection2": [
 					self.tunnel_fork_right_good,
 					self.tunnel_fork_right_bad,
 					self.tunnel_fork_right_none,
 					self.monster,
-					self.nothing,
 					self.find_treasure_chest
 				],
 				"selection3": [
@@ -983,6 +990,7 @@ class Game_Events:
 				player.invisibility_potions += 1
 			if rand_num == 3:
 				player.maximum_health += 30
+				player.modify_health(-20)
 			if rand_num == 4:
 				player.treasure_keys += 1
 			items = [" potion", " vial of troll's blood", "n invisibility potion", " mega health pack", " treasure key"]
@@ -1017,26 +1025,6 @@ class Game_Events:
 		events = ["hallway", "tunnel_fork"]
 		rand_num = random.randint(0,1)
 		self.next_event = events[rand_num]
-
-	# This is needed because player.name is initially set and does not change (bug fix)
-	def refresh_event_data(self):
-		self.game_data["hallway"]["event"] = f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead."
-		self.game_data["hallway"]["action"] = f"What will {player.name} do?"
-		self.game_data["gnome"]["action"] = f"Should {player.name} eat it?"
-		self.game_data["leprechaun"]["event"] = (
-			f"The little green-dressed leprechaun, who looks like he came straight "
-			f"off a cereal box, dives right into pleasantries and introduces himself as "
-			f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
-			f"bag open in front of {player.name}. Where has {player.name} heard that line "
-			f"before? It looks like there are several things in that bag but for some "
-			f"reason, {player.name} knows only to take one item. Can this leprechaun be "
-			f"trusted?")
-		self.game_data["leprechaun"]["action"] = f"What should {player.name} do?"
-		self.game_data["treasure_room"]["action"] = f"What should {player.name} do?"
-		self.game_data["tunnel_fork"]["action"] = f"What should {player.name} do?"
-		self.game_data["tunnel_fork"]["event"] = (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
-				 	f"{player.name} can hear faint sounds of rushing water. To the right a warm "
-					f"breeze is felt and the path curves up slightly.")
 		
 	def generic_action_prompt(self):
 		return f"What should {player.name} do?"
