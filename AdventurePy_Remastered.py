@@ -18,6 +18,7 @@ class Player:
 		self.has_compass = False
 		self.has_map = False
 		self.has_magic_ring = False
+		self.treasure_keys = 0
 
 	def modify_health(self, adjustment):
 		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
@@ -43,7 +44,8 @@ class Player:
 			"monsters_killed": self.monsters_killed,
 			"has_compass": self.has_compass,
 			"has_map": self.has_map,
-			"has_magic_ring": self.has_magic_ring
+			"has_magic_ring": self.has_magic_ring,
+			"treasure_keys": self.treasure_keys
 		}
 
 
@@ -287,7 +289,8 @@ class Game_Events:
 					self.hallway_trap_none,
 					self.trip_good,
 					self.trip_bad,
-					self.trip_none
+					self.trip_none,
+					self.find_treasure_chest
 				],
 				"selection2": [
 					self.monster,
@@ -387,7 +390,8 @@ class Game_Events:
 					self.tunnel_fork_right_bad,
 					self.tunnel_fork_right_none,
 					self.monster,
-					self.nothing
+					self.nothing,
+					self.find_treasure_chest
 				],
 				"selection3": [
 					self.tunnel_fork_sing_good,
@@ -408,74 +412,142 @@ class Game_Events:
 
 	def tunnel_fork_left_good(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		player.invisibility_potions += 1
+		return (f"{player.name} cautiously chooses the left fork of the dimly lit tunnel, their "
+			f"footsteps echoing against the damp walls. As they progress, their eyes catch a faint "
+			f"glimmer near a pile of rubble. Curiosity outweighs caution, and {player.name} "
+			f"brushes aside the debris to reveal a small, intricately carved vial filled with a "
+			f"shimmering, translucent liquid. A tattered note tied to its neck reads: \"Drink to "
+			f"vanish, but tread wisely. Not for use in locker rooms!\" Realizing it’s an "
+			f"invisibility potion, {player.name} tucks it away with a grin, knowing this could be "
+			f"the key to slipping past any lurking monsters.")
 
 	def tunnel_fork_left_bad(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		rand_num = random.randint(10, 30)
+		player.modify_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} ventures down the left fork, hopeful that it leads somewhere useful. "
+			f"After a short walk, they stumble upon a strange, sticky substance on the floor. "
+			f"Before {player.name} can process what’s happening, their foot gets stuck in the goo, "
+			f"and they fall flat on their face. It’s some kind of ancient, gross slime. As they "
+			f"struggle to get up, {player.name} realizes the goo is oddly heavy and sticky, "
+			f"pulling them down a bit more with every movement. Finally free, {player.name} "
+			f"manages to stumble forward, but not without losing {rand_num} health from the "
+			f"mishap. It's like the tunnel is trying to prank them… and it’s winning. {death_message}")
 
 	def tunnel_fork_left_none(self, player: Player):
-		self.shuffle_events()
-		return "Placeholder text."
-
+		return (f"{player.name} walks for quite a while. The tunnel stretches endlessly! "
+			f"{player.name} starts jogging, eager to find an end. But the path "
+			f"seems endless. Frustrated, {player.name} picks up the pace, running "
+			f"faster and faster. Everything looks the same! Finally, {player.name} "
+			f"reaches a fork in the tunnel—wait—this looks familiar! {player.name} "
+			f"realizes they’ve been running in a massive circle!")
 
 	def tunnel_fork_right_good(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		player.treasure_keys += 1
+		return (f"As {player.name} takes the right fork, a glint catches their eye. "
+			f"Could it be... a key? No way! {player.name} picks it up and tries to "
+			f"pocket it... but it barely fits in their hand. They giggle to themself, "
+			f"hoping they’ll find that treasure chest they *definitely* remember seeing "
+			f"somewhere. Or was that just in their dreams? Eh, they’ll figure it out.")
 
 	def tunnel_fork_right_bad(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		rand_num = random.randint(10, 30)
+		player.modify_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} takes the left fork and walks with newfound confidence. "
+			f"As they go, they hear a faint buzzing sound, and before they can react, a swarm of "
+			f"annoyed bees flies by, stinging {player.name} on the arms and face! In a flurry of panic, "
+			f"{player.name} swats and flails, trying to escape, but only succeeds in making things worse. "
+			f"Eventually, the bees disperse, but {player.name} takes {rand_num} damage and is left "
+			f"bruised, with a few more scratches than anticipated. Not the best way to spend an "
+			f"afternoon! {death_message}")
 
 	def tunnel_fork_right_none(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."		
-
+		return (f"As {player.name} proceeds down the tunnel, a light can be seen from above—"
+				f"daylight! Unfortunately, the light streams from a tall shaft overhead that "
+				f"looks completely un-climbable. {player.name} gazes mournfully at the sky and "
+				f"the unreachable freedom above.")
 
 	def tunnel_fork_sing_good(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		player.treasure_keys += 1
+		return (f"Feeling a little spontaneous, {player.name} decides to stand around and belt out a "
+			f"random song. The tune echoes through the tunnel—surprisingly good acoustics! Just as the last note "
+			f"fades, a strange sound interrupts: a metallic clink! {player.name} looks down, and there, glinting "
+			f"on the floor, is an old, rusted key. It seems like the tunnel rewards terrible singing. Maybe this key "
+			f"will open something… or maybe it’s just a weird coincidence. Either way, {player.name} pockets it, "
+			f"feeling oddly accomplished.")
 
 	def tunnel_fork_sing_bad(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."
+		return (f"{player.name} stands around, confidently singing a song for a few minutes, "
+			f"hoping the tunnel might offer some sort of reward. Nothing happens. Not even an echo. "
+			f"{player.name} awkwardly clears their throat, looks around, and pretends like they weren't just "
+			f"singing to no one. The silence is deafening. It’s a good thing no one else was around to hear that "
+			f"performance... or maybe it's a bad thing. Either way, nothing has changed. {player.name} decides "
+			f"to move on, slightly embarrassed, but determined.")
 
 	def tunnel_fork_sing_none(self, player: Player):
 		self.shuffle_events()
-		return "Placeholder text."		
+		if player.treasure_keys > 0:
+			lost_item = "a treasure key"
+			player.treasure_keys -= 1
+		elif player.invisibility_potions > 0:
+			lost_item = "an invisibility potion"
+			player.invisibility_potions -= 1
+		else:
+			lost_item = "their smart phone"
+		return (f"{player.name} confidently sings a song, expecting something grand to happen. "
+			f"Instead, a gust of wind blows through the tunnel and knocks something out of {player.name}'s "
+			f"pocket. It tumbles away, disappearing into the darkness. {player.name} scrambles, "
+			f"sifting through their pack to find out what had just vanished. {player.name} "
+			f"realizes they have just sung {lost_item} out of existence! "
+			f"Next time, try humming instead of performing a full concert.")
 
 	# ---------------------------------- Hallway Events ----------------------------------
 
 	def hallway_event(self):
-		return f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead."
+		return (f"{player.name} is in a long, dark cobblestone corridor. Spider webs coat the "
+			f"ceiling and lit torches line the walls as if someone were here recently. "
+			f"{player.name} sees a sewer grate about 20 feet ahead. There don't seem to be "
+			f"many other places that {player.name} can go.")
 	
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
 		player.modify_health(rand_num)
 		self.shuffle_events()
-		return (f"{player.name} steps on a trap! Oh no!"
+		return (f"A loud *click* is heard from a stone under {player.name}'s foot. {player.name} "
+		  	f"stepped on a trap! Oh no! "
 			f"\nFirey darts shoot out of the walls, but {player.name} quickly evades them. "
 			f"The burning darts illuminate a hole in the wall revealing a stashed potion. "
 			f"{player.name} grabs the bottle and drinks it to replenish {rand_num} health.")
 	
 	def hallway_trap_bad(self, player: Player):
+		self.shuffle_events()
 		rand_num = random.randint(20, 30)
 		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
-		return (f"{player.name} steps on a trap! Oh no!"
+		return (f"A loud *click* is heard from a stone under {player.name}'s foot. {player.name} "
+		  	f"stepped on a trap! Oh no! "
 			f"\nFirey darts shoot out of the walls wounding {player.name} and causing {rand_num} reduction in health!"
 			f"\n{death_message}")
 	
 	def hallway_trap_none(self, player: Player):
 		self.shuffle_events()
-		return (f"{player.name} steps on a trap! Oh no!"
+		return (f"A loud *click* is heard from a stone under {player.name}'s foot. {player.name} "
+		  	f"stepped on a trap! Oh no! "
 			f"\n{player.name} braces for sudden pain but the trap appears to have been a dud. Phew!")
 	
 	def trip_good(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 30)
 		player.modify_health(rand_num)
-		return (f"{player.name} trips over a rock!"
+		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
 			f"\nAfter getting up and dusting off, {player.name} sees that the rock was actually a health potion!"
 			f"\n{player.name} quickly grabs and gulps it down regaining {rand_num} health.")
 	
@@ -484,14 +556,16 @@ class Game_Events:
 		rand_num = random.randint(1, 20)
 		player.modify_health(-rand_num)
 		death_message = player.check_for_death()
-		return (f"{player.name} trips over a rock!"
-			f"\n{player.name} face plants into the hard floor and takes {rand_num} damage! Ouch!"
+		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
+			f"\n{player.name} face plants into the hard floor and takes {rand_num} damage! Ouch! "
+			f"Maybe next time {player.name} will stick the landing."
 			f"\n{death_message}")
 	
 	def trip_none(self, player: Player):
 		self.shuffle_events()
-		return (f"{player.name} trips over a rock!"
-			f"\nFortunately {player.name} landed in some nice soft mud. Every thing is fine.")
+		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
+			f"\nFortunately {player.name} landed in some nice soft mud. Every thing is fine, "
+			f"though a little more squishy.")
 	
 	# -------------------------------- Sewer Grate Events --------------------------------
 	def grate_good(self, player: Player):
@@ -747,16 +821,16 @@ class Game_Events:
 	
 	def leprechaun_bag_good(self, player: Player):
 		self.shuffle_events()
-		item_list = ["potion", "vial to troll's blood", "quarter staff"]
-		rand_item_num = random.randint(0, 2)
+		item_list = ["potion", "vial to troll's blood", "quarter staff", "treasure_key"]
+		rand_item_num = random.randint(0, 3)
 		rand_health_num = random.randint(15, 25)
-		
 		player.modify_health(rand_health_num if rand_item_num == 0 else 0)
-		if(rand_item_num == 2):
+		if rand_item_num == 2:
 			player.trolls_blood += 1
-		if(rand_item_num == 2):
+		if rand_item_num == 2:
 			player.weapons.add("Staff")
-
+		if rand_item_num == 3:
+			player.treasure_keys += 1
 		item_description = [
 			f"Just what {player.name} needed! {player.name} pops the lid and gulps it down "
 				f"regaining {rand_health_num} health! {player.name} then bids farewell to "
@@ -767,9 +841,10 @@ class Game_Events:
 				f"a bit loopy, {player.name} wanders away toward visions of sugar plumbs.",
 			f"How did Stinky fit a 6' pole in that little sack? What does it matter? {player.name} "
 				f"should be able to use this to fight back the monsters. "
-				f"\n\tNew weapon: Staff - Occasionally lands multiple blows to monsters."
+				f"\n\tNew weapon: Staff - Occasionally lands multiple blows to monsters.",
+			f"Hmm, this could be used to pick {player.name}'s nose. Also, it could open something. "
+			f"Stinky scurries away into the darkness."
 		]
-
 		return (f"{player.name} reaches blindly into the bag and grabs ahold of something. "
 			f"{player.name} pulls out a {item_list[rand_item_num]}! {item_description[rand_item_num]}")
 				  
@@ -853,14 +928,18 @@ class Game_Events:
 	# ------------------------------- Miscellaneous Events -------------------------------
 	def monster(self, player: Player):
 		self.shuffle_events()
-		return f"Before {player.name} can act, a monster jumps out of the darkness!"
-
-	def weapon_treasure(self, player: Player):
-		return f"{player.name} finds a weapon!"
+		return (f"As {player.name} takes a step forward, a loud rustling comes from the shadows. "
+			f"Before they can react, a giant, furry monster leaps out with a terrifying roar! "
+			f"Well, that was unexpected. {player.name} stumbles back, face pale, as the creature "
+			f"snarls and shows way too many teeth for comfort. There’s no time to panic – it’s "
+			f"fight-or-flight time!")
 
 	def nothing(self, player: Player):
-		return (f"Well that didn't seem to go anywhere."
-		   f"\n{player.name} is in a similar place as before.")
+		return (f"{player.name} moves a bit, then stands there for a moment, pondering the vast unknown. "
+			f"They scratch their head, glance around, and take a deep breath, only to realize "
+			f"they haven't actually done anything at all. Well, sometimes it’s nice to just... exist. "
+			f"After a few seconds of deep, philosophical reflection, they decide to keep moving. "
+			f"Maybe next time something will happen...")
 	
 	def death(self, width):
 		border = Utilities.create_ruler(width, 'X')
@@ -882,6 +961,57 @@ class Game_Events:
 		print("[Enter] Labyrinthia".center(width))
 		print(Utilities.create_ruler(width, '~'))
 		input()
+
+	def find_treasure_chest(self, player):
+		if player.treasure_keys == 0: 
+			outcome = (
+				f"After a while of wandering, {player.name} spots a nook in the wall. "
+				f"Inside, they see a locked treasure chest, just waiting to be opened. "
+				f"They bend down to check it out, only to realize—uh-oh! They don’t have a key! "
+				f"{player.name} tries shaking it, hoping for the best, but the chest isn’t budging. "
+				f"Guess it’ll just have to stay a mystery for now. Maybe next time {player.name} "
+				f"will come across a key—or a crowbar. Who knows?")
+		else:
+			rand_num = random.randint(0, 4)
+			rand_health = random.randint(10, 30)
+			player.treasure_keys -= 1
+			if rand_num == 0:
+				player.modify_health(rand_health)
+			if rand_num == 1:
+				player.trolls_blood += 1
+			if rand_num == 2:
+				player.invisibility_potions += 1
+			if rand_num == 3:
+				player.maximum_health += 30
+			if rand_num == 4:
+				player.treasure_keys += 1
+			items = [" potion", " vial of troll's blood", "n invisibility potion", " mega health pack", " treasure key"]
+			item_description = [
+				(f"{player.name} hopes this one will taste different than the other and slams it down. "
+					f"Nope. At least {player.name} regained {rand_health} heath!"),
+				(f"Having no idea what this is actually does to the human body, {player.name} "
+	 				f"guzzles it and hopes for the best. Mmmmm! Thick and gooey!"),
+				(f"It's one of those sneaky sneaky things to escape from monsters! Yay!"),
+				(f"Inside is {player.name} discovers a stash of food! A fresh sandwich, some "
+					f"fruit, and even a mysterious drink that looks like it’s from the future! "
+					f"{player.name} devours it all with reckless abandon, thinking, 'This’ll fix "
+					f"Sure enough, {player.name} feels tougher, but also maybe a little "
+					f"sicker? Oh well, worth it! {player.name} looses 20 health, but gains 30 to "
+					f"maximum health."),
+				(f"...a treasure key just like the one {player.name} used to open this chest. Yay.")
+			]
+			outcome = (
+				f"After a while of wandering, {player.name} spots a nook in the wall. "
+				f"Inside, they see a locked treasure chest. {player.name} grins, realizing "
+				f"they actually have a key! They eagerly shove the key into the lock, "
+				f"turn it, and—voila! The chest creaks open with a satisfying sound. "
+				f"Inside, {player.name} finds a{items[rand_num]}! {item_description[rand_num]} "
+				f"{player.name} attempts to remove the key from the chest, but as expected, "
+				f"it is stuck tight. I guess these keys are a one-time use."
+			)
+		return outcome
+
+	# ---------------------------------- Event Helpers -----------------------------------
 
 	def shuffle_events(self):
 		events = ["hallway", "tunnel_fork"]
