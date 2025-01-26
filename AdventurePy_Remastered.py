@@ -244,12 +244,12 @@ class Game:
 		num_options = len(event["options"])
 		options = Utilities.format_options(event["options"])
 
-		Utilities.draw_game_frame(header, event["event"], options, event["action"], self.display_width)
+		Utilities.draw_game_frame(header, event["event"](), options, event["action"](), self.display_width)
 		player_input = Utilities.get_player_input("Action: ", num_options)
 		selection_size = len(self.events_data[self.game_events.next_event][f"selection{player_input}"])
 		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
 		outcome = event[f"selection{player_input}"][random_num](player)
-		Utilities.draw_game_frame(header, event["event"], options, outcome, self.display_width)
+		Utilities.draw_game_frame(header, event["event"](), options, outcome, self.display_width)
 
 		return player_input
 	
@@ -258,7 +258,6 @@ class Game:
 	def start_game(self):
 		self.run_start_sequence()
 		while not player.is_dead:
-			self.game_events.refresh_event_data()
 			stats = [str(player.name), str(f"{player.health}/{player.maximum_health}"),
 				str(player.equipped_weapon)]
 			header = Utilities.create_table_header("Name, Health, Weapon", self.display_width, stats)
@@ -277,9 +276,9 @@ class Game_Events:
 
 		self.game_data = {
 			"hallway": {
-				"event": f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead.",
+				"event": self.hallway_event,
 				"options": ["Go down the corridor", "Climb down the grate", "Yell for help", "Save Game"],
-				"action": f"What will {player.name} do?",
+				"action": self.generic_action_prompt,
 				"selection1": [
 					self.nothing,
 					self.monster,
@@ -311,9 +310,9 @@ class Game_Events:
 				"selection4": [Utilities.save_game]
 			},
 			"gnome": {
-				"event": "The gnome looks delicious!",
+				"event": self.gnome_event,
 				"options": ["I had gnome for lunch.", "Nummy gnomey!", "Poke it with a stick first.", "Save Game"],
-				"action": f"Should {player.name} eat it?",
+				"action": self.gnome_action,
 				"selection1": [
 					self.dirpy_gnomey_good,
 					self.dirpy_gnomey_bad,
@@ -332,15 +331,9 @@ class Game_Events:
 				"selection4": [Utilities.save_game]
 			},
 			"leprechaun": {
-				f"event": "The little green-dressed leprechaun, who looks like he came straight "
-					f"off a cereal box, dives right into pleasantries and introduces himself as "
-					f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
-					f"bag open in front of {player.name}. Where has {player.name} heard that line "
-					f"before? It looks like there are several things in that bag but for some "
-					f"reason, {player.name} knows only to take one item. Can this leprechaun be "
-					f"trusted?",
+				"event": self.leprechaun_event,
 				"options": ["Ask what is in the bag.", "Walk away.", "Reach in and grab something.", "Save Game"],
-				"action": f"What should {player.name} do?",
+				"action": self.generic_action_prompt,
 				"selection1": [
 					self.leprechaun_ask_good,
 					self.leprechaun_ask_bad,
@@ -358,12 +351,10 @@ class Game_Events:
 				"selection4": [Utilities.save_game]
 			},
 			"treasure_room": {
-				"event": (f"In the center of this small chamber is a pile of gold dabloons, on top "
-					f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
-					f"hanging on the wall and an open door leading to another corridor."),
+				"event": self.treasure_room_event,
 				"options": ["Attempt to open the treasure chest.", "Investigate the weapons rack.",
 					"Leave through the door.", "Save Game"],
-				"action": f"What should {player.name} do?",
+				"action": self.generic_action_prompt,
 				"selection1": [
 					self.treasure_room_box_good,
 					self.treasure_room_box_bad,
@@ -381,11 +372,9 @@ class Game_Events:
 				"selection4": [Utilities.save_game]
 			},
 			"tunnel_fork": {
-				"event": (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
-				 	f"{player.name} can hear faint sounds of rushing water. To the right a warm "
-					f"breeze is felt and the path curves up slightly."),
+				"event": self.tunnel_fork_event,
 				"options": ["Go left.", "Go right.", "Sing a song.", "Save Game"],
-				"action": f"What should {player.name} do?",
+				"action": self.generic_action_prompt,
 				"selection1": [
 					self.tunnel_fork_left_good,
 					self.tunnel_fork_left_bad,
@@ -412,6 +401,11 @@ class Game_Events:
 		}
 
 	# -------------------------------- Tunnel Fork Events --------------------------------
+	def tunnel_fork_event(self):
+		return (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
+			f"{player.name} can hear faint sounds of rushing water. To the right a warm "
+			"breeze is felt and the path curves up slightly. ")
+
 	def tunnel_fork_left_good(self, player: Player):
 		self.shuffle_events()
 		return "Placeholder text."
@@ -451,6 +445,10 @@ class Game_Events:
 		return "Placeholder text."		
 
 	# ---------------------------------- Hallway Events ----------------------------------
+
+	def hallway_event(self):
+		return f"{player.name} sees a long corridor. There is a sewer grate about 20 feet ahead."
+	
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
 		player.modify_health(rand_num)
@@ -533,6 +531,11 @@ class Game_Events:
 			f"this on the floor? {player.name} discovers a room full of treasure!")
 	
 	# -------------------------------- Treasure Room Events ------------------------------
+	def treasure_room_event(self):
+		return (f"In the center of this small chamber is a pile of gold dabloons, on top "
+			f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
+			f"hanging on the wall and an open door leading to another corridor. ")
+
 	def treasure_room_box_good(self, player: Player):
 		rand_num = random.randint(0, 2)
 		self.shuffle_events()
@@ -658,6 +661,12 @@ class Game_Events:
 			f"important passages. Oops!")
 
 	# ----------------------------------- Gnome Events ---------------------------------
+	def gnome_event(self):
+		return "The gnome looks delicious!"
+
+	def gnome_action(self):
+		return f"Should {player.name} eat it?"		
+
 	def nummy_gnomey_good(self, player: Player):
 		self.shuffle_events()
 		player.maximum_health += 30
@@ -727,6 +736,15 @@ class Game_Events:
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
 	# --------------------------------- Leprechaun Events --------------------------------
+	def leprechaun_event(self):
+		return (f"The little green-dressed leprechaun, who looks like he came straight "
+			f"off a cereal box, dives right into pleasantries and introduces himself as "
+			f"'Stinky'. \"It's dangerous to go alone! Take this.\" he says as he holds his "
+			f"bag open in front of {player.name}. Where has {player.name} heard that line "
+			f"before? It looks like there are several things in that bag but for some "
+			f"reason, {player.name} knows only to take one item. Can this leprechaun be "
+			f"trusted? ")
+	
 	def leprechaun_bag_good(self, player: Player):
 		self.shuffle_events()
 		item_list = ["potion", "vial to troll's blood", "quarter staff"]
@@ -889,6 +907,9 @@ class Game_Events:
 		self.game_data["tunnel_fork"]["event"] = (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
 				 	f"{player.name} can hear faint sounds of rushing water. To the right a warm "
 					f"breeze is felt and the path curves up slightly.")
+		
+	def generic_action_prompt(self):
+		return f"What should {player.name} do?"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
