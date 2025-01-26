@@ -22,7 +22,7 @@ class Player:
 
 	def check_for_death(self):
 		self.is_dead = bool(self.health <= 0)
-		return f"Having lost all health, {player.name} falls lifeless to the ground." if self.is_dead else ""
+		return f"Having lost all health, {self.name} falls lifeless to the ground." if self.is_dead else ""
 	
 	# For serializing the object for json (saving games)
 	def to_dict(self):

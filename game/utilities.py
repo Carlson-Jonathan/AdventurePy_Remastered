@@ -51,7 +51,6 @@ class Utilities:
 		stats_row = "".join(stat.center(column_width) for stat in stats)
 		separator_length = max(len(header_row), len(stats_row))
 		separator = Utilities.create_ruler(int(table_width * 0.75), '-').center(table_width)
-
 		return f"{header_row}\n{separator}\n{stats_row}"
 	
 	# ------------------------------------------------------------------------------------
@@ -132,34 +131,27 @@ class Utilities:
 	
 	# ------------------------------------------------------------------------------------
 
-	# Returns a list of .sav files in the saves directory
+	# Verifies .sav files exist in the saves directory and returns a list of them
 	def get_save_files():
 		current_dir = Path(__file__).parent
 		saves_dir = current_dir / "saves"
-		if not saves_dir.exists():
-			return []
-		file_paths = saves_dir.glob("*.sav")
-		return [file.name for file in file_paths]
-	
-	# ------------------------------------------------------------------------------------
-
-
-	def get_game_to_load(width):
-		save_files = Utilities.get_save_files()
-		if not save_files:
+		if not saves_dir.exists() or not any(saves_dir.glob("*.sav")):
 			print("Error: No saved games were found in the 'saves' directory.")
 			exit()
-		else:
-			file_options = Utilities.format_options(save_files)
-			player_input = int(Utilities.format_opening_menus(file_options, len(file_options),
-				"Select a save to load: ", "str", width))
-		
+		file_paths = saves_dir.glob("*.sav")
+		return [file.name for file in file_paths]
+
+	# ------------------------------------------------------------------------------------
+
+	def prompt_for_game_to_load(save_files, width):
+		file_options = Utilities.format_options(save_files)
+		player_input = int(Utilities.format_opening_menus(file_options, len(file_options),
+			"Select a save to load: ", "str", width))
 		return save_files[player_input - 1]
 
-	
 	# ------------------------------------------------------------------------------------
 		
-	def get_save_data(game_to_load):
+	def extract_json_data(game_to_load):
 		try:
 			saves_dir = Path(__file__).parent / "saves"  # Update to point to the 'saves' directory
 			file_path = saves_dir / game_to_load
@@ -168,20 +160,19 @@ class Utilities:
 			with file_path.open("r") as file:
 				data = json.load(file)
 			return data
-
 		except json.JSONDecodeError:
 			print("Error: The file does not contain valid JSON.")
 		except FileNotFoundError:
 			print(f"Error: The file '{game_to_load}' was not found.")
 		
-		return None
+		exit()
 
 	# ------------------------------------------------------------------------------------
 
 	def load_game(player: Player, width):
-		game_to_load = Utilities.get_game_to_load(width)
-		save_data = Utilities.get_save_data(game_to_load)
-
+		save_files = Utilities.get_save_files()
+		game_to_load = Utilities.prompt_for_game_to_load(save_files, width)
+		save_data = Utilities.extract_json_data(game_to_load)
 		if save_data:
 			player.__dict__.update(save_data)
 
@@ -190,7 +181,5 @@ class Utilities:
 			# list back to a set.
 			if isinstance(player.weapons, list):
 				player.weapons = set(player.weapons)
-
-			player.modify_health
 		else:
 			print("Error: No data was loaded.")
