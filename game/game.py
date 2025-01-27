@@ -11,7 +11,7 @@ class Game:
 		self.display_width = 75
 		self.start_game()
 
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
 	def run_start_sequence(self):
 		player_input = Utilities.show_save_load_prompt(self.display_width)
@@ -23,7 +23,7 @@ class Game:
 		else:
 			Utilities.load_game(self.player, self.display_width)
 		
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def perform_event(self, header, event):
 		num_options = len(event["options"])
@@ -38,7 +38,7 @@ class Game:
 
 		return player_input
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	def start_game(self):
 		self.run_start_sequence()

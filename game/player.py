@@ -14,15 +14,21 @@ class Player:
 		self.has_magic_ring = False
 		self.treasure_keys = 0
 
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
+
 	def modify_health(self, adjustment):
 		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
 		self.health += adjustment
 		self.health = min(self.health, self.maximum_health)
 		self.health = max(self.health, 0)
 
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
+
 	def check_for_death(self):
 		self.is_dead = bool(self.health <= 0)
 		return f"Having lost all health, {self.name} falls lifeless to the ground." if self.is_dead else ""
+	
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	# For serializing the object for json (saving games)
 	def to_dict(self):

@@ -9,7 +9,7 @@ class Utilities:
 		command = 'cls' if os.name == 'nt' else 'clear'
 		subprocess.call(command, shell=True)
 
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def get_player_input(prompt, num_options):
 		while True:
@@ -19,12 +19,12 @@ class Utilities:
 			else:
 				print("Invalid input. Try again.")
 
-	# ------------------------------------------------------------------------------------				
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~				
 
 	def create_ruler(length = 50, character = '~'):
 		return character * length
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	def draw_game_frame(header, scenario, options, outcome, width):
 		Utilities.clear_screen()
@@ -41,7 +41,7 @@ class Utilities:
 			f"{Utilities.wrap_text(outcome, width)}\n"
 			f"{border}")
 		
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def create_table_header(headers, table_width, stats):
 		header_list = [header.strip() for header in headers.split(",")]
@@ -53,7 +53,7 @@ class Utilities:
 		separator = Utilities.create_ruler(int(table_width * 0.75), '-').center(table_width)
 		return f"{header_row}\n{separator}\n{stats_row}"
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
 	def wrap_text(text, width):
 		words = text.split()
@@ -72,7 +72,7 @@ class Utilities:
 
 		return "\n".join(lines)
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def format_options(items):
 		result = []
@@ -80,7 +80,7 @@ class Utilities:
 			result.append(f"\t{i}: {item}")
 		return "\n".join(result)
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def print_title():
 		print('''
@@ -94,7 +94,7 @@ class Utilities:
 			  |____/  
 ''')
 		
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def format_opening_menus(options, num_options, prompt, prompt_type, width):
 		border = Utilities.create_ruler(width, '~')
@@ -108,14 +108,14 @@ class Utilities:
 		else:
 			return input(prompt)
 		
-	# ------------------------------------------------------------------------------------		
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 		
 	def show_save_load_prompt(width):
 		options = Utilities.format_options(["New Game", "Load Saved Game"])
 		return Utilities.format_opening_menus(options, len(options),
 			"Make your selection: ", "num", width)
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def save_game(player: Player):
 		player_string = json.dumps(player.to_dict(), indent=4)
@@ -129,7 +129,7 @@ class Utilities:
 		return (f"{player.name} pauses for a moment of meditation. {player.name} feels a strange "
 				f"bond with the surrounding area. (Game saved as \"{player.name}.sav\")")
 	
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	# Verifies .sav files exist in the saves directory and returns a list of them
 	def get_save_files():
@@ -141,7 +141,7 @@ class Utilities:
 		file_paths = saves_dir.glob("*.sav")
 		return [file.name for file in file_paths]
 
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def prompt_for_game_to_load(save_files, width):
 		file_options = Utilities.format_options(save_files)
@@ -149,7 +149,7 @@ class Utilities:
 			"Select a save to load: ", "str", width))
 		return save_files[player_input - 1]
 
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
 	def extract_json_data(game_to_load):
 		try:
@@ -167,7 +167,7 @@ class Utilities:
 		
 		exit()
 
-	# ------------------------------------------------------------------------------------
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def load_game(player: Player, width):
 		save_files = Utilities.get_save_files()

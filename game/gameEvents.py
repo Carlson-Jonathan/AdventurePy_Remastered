@@ -2,7 +2,6 @@ from .utilities import Utilities
 from .player import Player
 import random
 
-
 class Game_Events:
 	def __init__(self):
 		self.next_event = "hallway"
@@ -44,7 +43,7 @@ class Game_Events:
 			},
 			"gnome": {
 				"event": self.gnome_event,
-				"options": ["I had gnome for lunch.", "Nummy gnomey!", "Poke it with a stick first.", "Save Game"],
+				"options": ["I had gnome for lunch", "Nummy gnomey!", "Poke it with a stick first", "Save Game"],
 				"action": self.gnome_action,
 				"selection1": [
 					self.dirpy_gnomey_good,
@@ -65,7 +64,7 @@ class Game_Events:
 			},
 			"leprechaun": {
 				"event": self.leprechaun_event,
-				"options": ["Ask what is in the bag.", "Walk away.", "Reach in and grab something.", "Save Game"],
+				"options": ["Ask what is in the bag", "Walk away", "Reach in and grab something", "Save Game"],
 				"action": self.generic_action_prompt,
 				"selection1": [
 					self.leprechaun_ask_good,
@@ -85,8 +84,8 @@ class Game_Events:
 			},
 			"treasure_room": {
 				"event": self.treasure_room_event,
-				"options": ["Attempt to open the treasure chest.", "Investigate the weapons rack.",
-					"Leave through the door.", "Save Game"],
+				"options": ["Attempt to open the treasure chest", "Investigate the weapons rack",
+					"Leave through the door", "Save Game"],
 				"action": self.generic_action_prompt,
 				"selection1": [
 					self.treasure_room_box_good,
@@ -106,7 +105,7 @@ class Game_Events:
 			},
 			"tunnel_fork": {
 				"event": self.tunnel_fork_event,
-				"options": ["Go left.", "Go right.", "Sing a song.", "Save Game"],
+				"options": ["Go left", "Go right", "Sing a song", "Save Game"],
 				"action": self.generic_action_prompt,
 				"selection1": [
 					self.tunnel_fork_left_good,
@@ -134,11 +133,14 @@ class Game_Events:
 			}
 		}
 
-	# -------------------------------- Tunnel Fork Events --------------------------------
+	################################## Tunnel Fork Events ##########################################
+
 	def tunnel_fork_event(self, player: Player):
 		return (f"{player.name} comes to fork in the tunnel. The left path smells musty and "
 			f"{player.name} can hear faint sounds of rushing water. To the right a warm "
 			"breeze is felt and the path curves up slightly. ")
+
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_left_good(self, player: Player):
 		self.shuffle_events()
@@ -151,6 +153,8 @@ class Game_Events:
 			f"vanish, but tread wisely. Not for use in locker rooms!\" Realizing it’s an "
 			f"invisibility potion, {player.name} tucks it away with a grin, knowing this could be "
 			f"the key to slipping past any lurking monsters.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_left_bad(self, player: Player):
 		self.shuffle_events()
@@ -165,6 +169,8 @@ class Game_Events:
 			f"pulling them down a bit more with every movement. Finally free, {player.name} "
 			f"manages to stumble forward, but not without losing {rand_num} health from the "
 			f"mishap. It's like the tunnel is trying to prank them… and it’s winning. {death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_left_none(self, player: Player):
 		return (f"{player.name} walks for quite a while. The tunnel stretches endlessly! "
@@ -173,6 +179,8 @@ class Game_Events:
 			f"faster and faster. Everything looks the same! Finally, {player.name} "
 			f"reaches a fork in the tunnel—wait—this looks familiar! {player.name} "
 			f"realizes they’ve been running in a massive circle!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_right_good(self, player: Player):
 		self.shuffle_events()
@@ -182,6 +190,8 @@ class Game_Events:
 			f"pocket it... but it barely fits in their hand. They giggle to themself, "
 			f"hoping they’ll find that treasure chest they *definitely* remember seeing "
 			f"somewhere. Or was that just in their dreams? Eh, they’ll figure it out.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_right_bad(self, player: Player):
 		self.shuffle_events()
@@ -195,6 +205,8 @@ class Game_Events:
 			f"Eventually, the bees disperse, but {player.name} takes {rand_num} damage and is left "
 			f"bruised, with a few more scratches than anticipated. Not the best way to spend an "
 			f"afternoon! {death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_right_none(self, player: Player):
 		self.shuffle_events()
@@ -202,6 +214,8 @@ class Game_Events:
 				f"daylight! Unfortunately, the light streams from a tall shaft overhead that "
 				f"looks completely un-climbable. {player.name} gazes mournfully at the sky and "
 				f"the unreachable freedom above.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_sing_good(self, player: Player):
 		self.shuffle_events()
@@ -212,6 +226,8 @@ class Game_Events:
 			f"on the floor, is an old, rusted key. It seems like the tunnel rewards terrible singing. Maybe this key "
 			f"will open something… or maybe it’s just a weird coincidence. Either way, {player.name} pockets it, "
 			f"feeling oddly accomplished.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_sing_bad(self, player: Player):
 		self.shuffle_events()
@@ -221,6 +237,8 @@ class Game_Events:
 			f"singing to no one. The silence is deafening. It’s a good thing no one else was around to hear that "
 			f"performance... or maybe it's a bad thing. Either way, nothing has changed. {player.name} decides "
 			f"to move on, slightly embarrassed, but determined.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def tunnel_fork_sing_none(self, player: Player):
 		self.shuffle_events()
@@ -239,13 +257,15 @@ class Game_Events:
 			f"realizes they have just sung {lost_item} out of existence! "
 			f"Next time, try humming instead of performing a full concert.")
 
-	# ---------------------------------- Hallway Events ----------------------------------
+	#################################### Hallway Events ############################################
 
 	def hallway_event(self, player: Player):
 		return (f"{player.name} is in a long, dark cobblestone corridor. Spider webs coat the "
 			f"ceiling and lit torches line the walls as if someone were here recently. "
 			f"{player.name} sees a sewer grate about 20 feet ahead. There don't seem to be "
 			f"many other places that {player.name} can go.")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
@@ -257,6 +277,8 @@ class Game_Events:
 			f"The burning darts illuminate a hole in the wall revealing a stashed potion. "
 			f"{player.name} grabs the bottle and drinks it to replenish {rand_num} health.")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def hallway_trap_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(20, 30)
@@ -267,11 +289,15 @@ class Game_Events:
 			f"\nFirey darts shoot out of the walls wounding {player.name} and causing {rand_num} reduction in health!"
 			f"\n{death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def hallway_trap_none(self, player: Player):
 		self.shuffle_events()
 		return (f"A loud *click* is heard from a stone under {player.name}'s foot. {player.name} "
 		  	f"stepped on a trap! Oh no! "
 			f"\n{player.name} braces for sudden pain but the trap appears to have been a dud. Phew!")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def trip_good(self, player: Player):
 		self.shuffle_events()
@@ -280,6 +306,8 @@ class Game_Events:
 		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
 			f"\nAfter getting up and dusting off, {player.name} sees that the rock was actually a health potion!"
 			f"\n{player.name} quickly grabs and gulps it down regaining {rand_num} health.")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def trip_bad(self, player: Player):
 		self.shuffle_events()
@@ -291,13 +319,16 @@ class Game_Events:
 			f"Maybe next time {player.name} will stick the landing."
 			f"\n{death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def trip_none(self, player: Player):
 		self.shuffle_events()
 		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
 			f"\nFortunately {player.name} landed in some nice soft mud. Every thing is fine, "
 			f"though a little more squishy.")
 	
-	# -------------------------------- Sewer Grate Events --------------------------------
+	################################## Sewer Grate Events ##########################################
+
 	def grate_good(self, player: Player):
 		rand_num = random.randint(15, 35)
 		player.modify_health(rand_num)
@@ -306,6 +337,8 @@ class Game_Events:
 			f"On the way down the ladder {player.name} finds a potion dangling by a string on one "
 			f"of the ladder rungs. {player.name} pops the cork and gussles it regaining {rand_num} "
 			f"health! Mmmmm! Cherry flavored!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def grate_bad(self, player: Player):
 		rand_num = random.randint(25, 40)
@@ -315,18 +348,24 @@ class Game_Events:
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"While climbing down a rung on the ladder breaks loose! {player.name} falls and "
 			f"lands hard taking {rand_num} damage! Owiee! {death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def grate_none(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"{player.name} slides down the greasy ladder and springs into a fighting stance "
-		 	f"at the bottom. No attack comes.") 
+		 	f"at the bottom. No attack comes.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def grate_leprechaun(self, player: Player):
 		self.next_event = "leprechaun"
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
 			f"After methodically stepping down the ladder, {player.name} splashes into a puddle "
 			f"and turns to find a leprechaun sitting in a nook with a burlap sack.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def grate_treasure_room(self, player: Player):
 		self.next_event = "treasure_room"
@@ -334,11 +373,14 @@ class Game_Events:
 			f"{player.name} drops down the hole and lands with a \"clink-clink-clatter\". What's "
 			f"this on the floor? {player.name} discovers a room full of treasure!")
 	
-	# -------------------------------- Treasure Room Events ------------------------------
+	################################## Treasure Room Events ########################################
+
 	def treasure_room_event(self, player: Player):
 		return (f"In the center of this small chamber is a pile of gold dabloons, on top "
 			f"of which sits an ornate treasure chest. There is a rack of old, rusty weapons "
 			f"hanging on the wall and an open door leading to another corridor. ")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_box_good(self, player: Player):
 		rand_num = random.randint(0, 2)
@@ -361,6 +403,8 @@ class Game_Events:
 			f"The chest creeks open. {player.name} finds a {items[rand_num]}! "
 			f"{item_description[rand_num]}{player.name} is pleased with the loot and stares at it "
 			f"wandering out the door forgetting that there was ever anything else in the room.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_box_bad(self, player: Player):
 		self.shuffle_events()
@@ -371,6 +415,8 @@ class Game_Events:
 			f"opens, {player.name} is sprayed in the face with posionous gas taking {rand_num} "
 			f"damage! Gas continues to fill the room and {player.name} is forced to flee. "
 			f"{death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_box_none(self, player: Player):
 		self.shuffle_events()
@@ -378,6 +424,8 @@ class Game_Events:
 		  	f"locked and too heavy to move! As {player.name} attempts to pry the chest open "
 			f"the stone door to the room starts to slide closed. {player.name} dashes to the door "
 			f"to avoid being trapped and barely escapes! The door is now sealed tight.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_rack_good(self, player: Player):
 		self.shuffle_events()
@@ -387,12 +435,16 @@ class Game_Events:
 			f"useful to fight off monsters! {player.name} takes the sword from the rack and jams "
 			f"it in a pocket. Ouch! Just then, swarms of venomous spiders begin emerging from "
 			f"cracks in the walls. {player.name} must have disturbed a nest and runs out of the room.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_rack_none(self, player: Player):
 		self.shuffle_events()
 		return (f"Everything on the rack is rusted or rotted away. There is nothing useful here. "
 			f"Just then, swarms of venomous spiders begin emerging from cracks in the walls. "
 			f"{player.name} must have disturbed a nest and runs out of the room.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_leave_good(self, player: Player):
 		player.weapons.add("Magic Book")
@@ -403,6 +455,8 @@ class Game_Events:
 			f"in it that will help {player.name} escape this place. {player.name} grabs the book "
 			f"and walks out of the room. On closer inspection, {player.name} sees that the book is "
 			f"actually a book of combat magic! Maybe this will help fight away the monsters!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_leave_bad(self, player: Player):
 		self.shuffle_events()
@@ -413,6 +467,8 @@ class Game_Events:
 		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
 			f"toward the exit. Ironically, {player.name} slips on a pile of gold coins near the "
 			f"door and falls taking {rand_num} damage! {death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def treasure_room_leave_none(self, player: Player):
 		self.shuffle_events()
@@ -421,10 +477,13 @@ class Game_Events:
 			f"toward the exit. {player.name} briefly looks back at the glittering prizes and "
 			f"wonders if any of this stuff could have assisted in escaping. Maybe next time.")
 
-	# ----------------------------------- Yelling Events ---------------------------------
+	##################################### Yelling Events ###########################################
+
 	def yell_monster(self, player: Player):
 		return (f"{player.name} hollers into the darkness and hears an echoing voice followed "
 		  	f"by a deep growl. {player.name}'s yells are responded to by a monster!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def yell_throat_hurts(self, player: Player):
 		rand_num = random.randint(1, 10)
@@ -434,15 +493,21 @@ class Game_Events:
 		  	f"throat now hurts from yelling and takes {rand_num} damage. (Way to go.) "
 			f"{death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def yell_gnome(self, player: Player):
 		self.next_event = "gnome"
 		return (f"{player.name} shouts for help. Moments later, a curious looking gnome appears "
 		  	f"from around the corner.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def yell_none(self, player: Player):
 		return (f"{player.name}'s voice echos down the tunnel, \"can anyone hear me?\". Just then "
 		  	f"a reply is heard, \n\"Yes I hear you! Stop playing video games and get back to your "
 			f"school work!\". Hmm, I wonder who that was?")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def yell_collapse_good(self, player: Player):
 		rand_num = random.randint(15, 35)
@@ -450,6 +515,8 @@ class Game_Events:
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. A potion "
 		  	f"bottle randomly rolls out of a pipe in the wall! {player.name} slurps it up and "
 			f"regains {rand_num} health!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def yell_collapse_bad(self, player: Player):
 		rand_num = random.randint(10, 15)
@@ -458,18 +525,25 @@ class Game_Events:
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. "
 			f"Rocks begin to fall from above and and strike {player.name} on the head! "
 			f"{player.name} takes {rand_num} damage! {death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def yell_collapse_none(self, player: Player):
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. "
 		  	f"The roar of large falling rocks can be heard ahead. I hope that didn't block any "
 			f"important passages. Oops!")
 
-	# ----------------------------------- Gnome Events ---------------------------------
+	##################################### Gnome Events #############################################
+
 	def gnome_event(self, player: Player):
 		return "The gnome looks delicious!"
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def gnome_action(self, player: Player):
-		return f"Should {player.name} eat it?"		
+		return f"Should {player.name} eat it?"
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def nummy_gnomey_good(self, player: Player):
 		self.shuffle_events()
@@ -480,6 +554,8 @@ class Game_Events:
 			f"{player.name} munches on the remainder of the gnomes head, {player.name} feels "
 			f"an increase in vitality. {player.name}'s maximum health increases!")
 	
+	# ----------------------------------------------------------------------------------------------
+
 	def nummy_gnomey_bad(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 15)
@@ -490,11 +566,15 @@ class Game_Events:
 			f"doll creature up and gobbles it down. Moments later {player.name} begins to have "
 			f"bad indegestion and takes {rand_num} damage. Gnomaalox! {death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def nummy_gnomey_none(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} picks the startled gnome up by the head, and bites off one of "
 			f"its legs. The last gnome {player.name} ate tasted much better. {player.name} drops "
-			f"the gnome on the floor in disgust and lets it hop away.")	
+			f"the gnome on the floor in disgust and lets it hop away.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def pokey_gnomey_good(self, player: Player):
 		self.shuffle_events()
@@ -505,10 +585,14 @@ class Game_Events:
 			f"hat behind. Picking it up {player.name} finds a potion inside and chugs it. "
 			f"{player.name} regains {rand_num} health!")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def pokey_gnomey_bad(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} pulls a walking stick from their pocket and jabs the gnome in the "
 		  	f"eye. The gnome becomes enraged, growls, and viciously attacks {player.name}!")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def pokey_gnomey_none(self, player: Player):
 		self.shuffle_events()
@@ -516,6 +600,8 @@ class Game_Events:
 		  	f"toward the gnome. In a flash, the gnome snatches it away and gobbles it up. "
 			f"\"Thanks!\" it says as it dissapears into the darkness. {player.name} was going to "
 			f"eat that. How rude!")
+	
+	# ----------------------------------------------------------------------------------------------
 			  
 	def dirpy_gnomey_good(self, player: Player):
 		self.shuffle_events()
@@ -528,10 +614,14 @@ class Game_Events:
 			f"in another direction. \"Oh dear!\" exclaims the gnome. Was {player.name} supposed "
 			f"to do that?")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def dirpy_gnomey_bad(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} stares silently at the gnome. It sniffs and begins making an odd "
-			f"growling sound. The gnome begins increasing in size and transforms into a monster!")  
+			f"growling sound. The gnome begins increasing in size and transforms into a monster!")
+	
+	# ----------------------------------------------------------------------------------------------
 		  	
 	def dirpy_gnomey_none(self, player: Player):
 		self.shuffle_events()
@@ -539,7 +629,8 @@ class Game_Events:
 		  	f"down the nearest open grate. \"I can't reach the ground fast enough!\" it yells as "
 			f"as it decends into the dark abyss. Time to focus on more important things.")
 
-	# --------------------------------- Leprechaun Events --------------------------------
+	################################### Leprechaun Events ##########################################
+	
 	def leprechaun_event(self, player: Player):
 		return (f"The little green-dressed leprechaun, who looks like he came straight "
 			f"off a cereal box, dives right into pleasantries and introduces himself as "
@@ -548,6 +639,8 @@ class Game_Events:
 			f"before? It looks like there are several things in that bag but for some "
 			f"reason, {player.name} knows only to take one item. Can this leprechaun be "
 			f"trusted? ")
+	
+	# ----------------------------------------------------------------------------------------------
 	
 	def leprechaun_bag_good(self, player: Player):
 		self.shuffle_events()
@@ -577,6 +670,8 @@ class Game_Events:
 		]
 		return (f"{player.name} reaches blindly into the bag and grabs ahold of something. "
 			f"{player.name} pulls out a {item_list[rand_item_num]}! {item_description[rand_item_num]}")
+	
+	# ----------------------------------------------------------------------------------------------
 				  
 	def leprechaun_bag_bad(self, player: Player):
 		self.shuffle_events()
@@ -592,6 +687,8 @@ class Game_Events:
 			f"\"but ye are only allowed to reach into this here bag once per visit.\" Stinky "
 			f"ties his bag shut and scurries off. How unfortunate. Maybe you will see him again? "
 			f"{death_message}")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def leprechaun_bag_none(self, player: Player):
 		self.shuffle_events()
@@ -604,6 +701,8 @@ class Game_Events:
 			f"fer yer business. See ya next time!\" says Stinky as he dissapears in a cloud of "
 			f"smoke. 'Next time?'")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def leprechaun_walk_good(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
@@ -614,6 +713,8 @@ class Game_Events:
 			f"need'n a compass to use it, but I don't have one. What do ya say?\" It sounds "
 			f"like {player.name} doesn't have much of a choice and agrees to do the leprechaun's "
 			f"dirty work of monster slaying. {player.name} reluctantly agrees and wanders off.")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def leprechaun_walk_bad(self, player: Player):
 		self.shuffle_events()
@@ -625,6 +726,8 @@ class Game_Events:
 			f"away, Stinky pulls a knife from his bag and stabs {player.name} in the back! Oh no! It "
 			f"was the leprechaun from THAT movie! {player.name} takes {rand_num} damage! {death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def leprechaun_ask_good(self, player: Player):
 		self.shuffle_events()
 		player.modify_health(9999999)
@@ -632,6 +735,8 @@ class Game_Events:
 		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
 			f"{player.name} takes the bottle of purple liquid from Stinky and gulps it down. "
 			f"{player.name}'s health fully recovers! Wow! What else does Stinky... where'd he go?")
+	
+	# ----------------------------------------------------------------------------------------------
 		  
 	def leprechaun_ask_bad(self, player: Player):
 		self.shuffle_events()
@@ -645,6 +750,8 @@ class Game_Events:
 			f"damage! When {player.name}'s vision returns, Stinky is gone. That little troll! "
 			f"{death_message}")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def leprechaun_ask_none(self, player: Player):
 		self.shuffle_events()
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. Stinky "
@@ -655,7 +762,8 @@ class Game_Events:
 			f"that sound entirely made up. {player.name}'s eyes begin to glaze over. "
 			f"After 10 minutes of this {player.name} decides to wander off.")
 	
-	# ------------------------------- Miscellaneous Events -------------------------------
+	################################# Miscellaneous Events #########################################
+
 	def monster(self, player: Player):
 		self.shuffle_events()
 		return (f"As {player.name} takes a step forward, a loud rustling comes from the shadows. "
@@ -663,6 +771,8 @@ class Game_Events:
 			f"Well, that was unexpected. {player.name} stumbles back, face pale, as the creature "
 			f"snarls and shows way too many teeth for comfort. There’s no time to panic – it’s "
 			f"fight-or-flight time!")
+	
+	# ----------------------------------------------------------------------------------------------
 
 	def nothing(self, player: Player):
 		return (f"{player.name} moves a bit, then stands there for a moment, pondering the vast unknown. "
@@ -671,12 +781,16 @@ class Game_Events:
 			f"After a few seconds of deep, philosophical reflection, they decide to keep moving. "
 			f"Maybe next time something will happen...")
 	
+	# ----------------------------------------------------------------------------------------------
+	
 	def death(self, width):
 		border = Utilities.create_ruler(width, 'X')
 		death_message = "You have failed your quest!"
 		game_over = "G A M E   O V E R !"
 		print(f"{border}\n{death_message.center(width)}\n{game_over.center(width)}\n{border}")
 		input()
+
+	# ----------------------------------------------------------------------------------------------
 
 	def print_introduction(self, player: Player, width):
 		print(Utilities.create_ruler(width, '~'))
@@ -691,6 +805,8 @@ class Game_Events:
 		print("[Enter] Labyrinthia".center(width))
 		print(Utilities.create_ruler(width, '~'))
 		input()
+
+	# ----------------------------------------------------------------------------------------------
 
 	def find_treasure_chest(self, player):
 		if player.treasure_keys == 0: 
@@ -742,12 +858,14 @@ class Game_Events:
 			)
 		return outcome
 
-	# ---------------------------------- Event Helpers -----------------------------------
+	#################################### Event Helpers #############################################
 
 	def shuffle_events(self):
 		events = ["hallway", "tunnel_fork"]
 		rand_num = random.randint(0,1)
 		self.next_event = events[rand_num]
+
+	# ----------------------------------------------------------------------------------------------
 		
 	def generic_action_prompt(self, player: Player):
 		return f"What should {player.name} do?"
