@@ -18,7 +18,7 @@ class Game:
 		if player_input == 1:
 			self.player.name = input("Enter your character's name: ")
 			Utilities.clear_screen()
-			Utilities.print_title()
+			Utilities.print_title(self.display_width)
 			self.game_events.print_introduction(self.player, self.display_width)
 		else:
 			Utilities.load_game(self.player, self.display_width)
@@ -28,13 +28,13 @@ class Game:
 	def perform_event(self, header, event):
 		num_options = len(event["options"])
 		options = Utilities.format_options(event["options"])
-
 		Utilities.draw_game_frame(header, event["event"](self.player), options, event["action"](self.player), self.display_width)
 		player_input = Utilities.get_player_input("Action: ", num_options)
 		selection_size = len(self.events_data[self.game_events.next_event][f"selection{player_input}"])
-		random_num = random.randint(0, selection_size - 1) if player_input < 4 else 0
-		outcome = event[f"selection{player_input}"][random_num](self.player)
-		Utilities.draw_game_frame(header, event["event"](self.player), options, outcome, self.display_width)
+		chosen_event = self.game_events.get_event_using_frequency(
+			self.events_data[self.game_events.next_event][f"selection{player_input}"])
+		Utilities.draw_game_frame(header, event["event"](self.player), options,
+			chosen_event(self.player), self.display_width)
 
 		return player_input
 	

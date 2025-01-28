@@ -28,7 +28,7 @@ class Utilities:
 	
 	def draw_game_frame(header, scenario, options, outcome, width):
 		Utilities.clear_screen()
-		Utilities.print_title()
+		Utilities.print_title(width)
 		border = Utilities.create_ruler(width)
 		print(
 			f"{border}\n"
@@ -82,16 +82,17 @@ class Utilities:
 	
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	def print_title():
-		print('''
-	 _           _                _       _   _     _       
-	| |         | |              (_)     | | | |   (_)      
-	| |     __ _| |__  _   _ _ __ _ _ __ | |_| |__  _  __ _ 
-	| |    / _` | '_ \\| | | | '__| | '_ \\| __| '_ \\| |/ _` |
-	| |___| (_| | |_) | |_| | |  | | | | | |_| | | | | (_| |
-   	\\_____/\\__,_|_.__/ \\__, |_|  |_|_| |_|\\__|_| |_|_|\\__,_|
-		   	   __/  |                               
-			  |____/  
+	def print_title(width):
+		margin = " " * int((width - 60) / 2 + 1)
+		print(f'''
+{margin} _           _                _       _   _     _       
+{margin}| |         | |              (_)     | | | |   (_)      
+{margin}| |     __ _| |__  _   _ _ __ _ _ __ | |_| |__  _  __ _ 
+{margin}| |    / _` | '_ \\| | | | '__| | '_ \\| __| '_ \\| |/ _` |
+{margin}| |___| (_| | |_) | |_| | |  | | | | | |_| | | | | (_| |
+{margin}\\_____/\\__,_|_.__/ \\__, |_|  |_|_| |_|\\__|_| |_|_|\\__,_|
+{margin}                     /  |                               
+{margin}                    /__/  
 ''')
 		
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,7 +100,7 @@ class Utilities:
 	def format_opening_menus(options, num_options, prompt, prompt_type, width):
 		border = Utilities.create_ruler(width, '~')
 		Utilities.clear_screen()
-		Utilities.print_title()
+		Utilities.print_title(width)
 		print(border + "\n")
 		print(options)
 		print("\n" + border)

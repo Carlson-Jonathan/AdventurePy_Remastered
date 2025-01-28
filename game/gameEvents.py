@@ -5,6 +5,8 @@ import random
 class Game_Events:
 	def __init__(self):
 		self.next_event = "hallway"
+		self.event_frequencies = {}
+		self.all_event_functions = set()
 
 		self.game_data = {
 			"hallway": {
@@ -132,6 +134,9 @@ class Game_Events:
 				"selection4": [Utilities.save_game]
 			}
 		}
+
+		self.populate_event_functions(self.game_data)
+		self.initialize_event_frequencies()
 
 	################################## Tunnel Fork Events ##########################################
 
@@ -860,6 +865,25 @@ class Game_Events:
 
 	#################################### Event Helpers #############################################
 
+	def populate_event_functions(self, data):
+		for key, value in data.items():
+			if isinstance(value, dict):
+				self.populate_event_functions(value)
+			elif isinstance(value, list):
+				for item in value:
+					if callable(item):
+						self.all_event_functions.add(item)
+			elif callable(value):
+				self.all_event_functions.add(value)
+
+	# ----------------------------------------------------------------------------------------------
+				
+	def initialize_event_frequencies(self):
+		for event in list(self.all_event_functions):
+			self.event_frequencies[event] = 1
+				
+	# ----------------------------------------------------------------------------------------------				
+
 	def shuffle_events(self):
 		events = ["hallway", "tunnel_fork"]
 		rand_num = random.randint(0,1)
@@ -869,3 +893,14 @@ class Game_Events:
 		
 	def generic_action_prompt(self, player: Player):
 		return f"What should {player.name} do?"
+	
+	# ----------------------------------------------------------------------------------------------		
+
+	# Returns an event based on how frequently it has been used so far. Less frequent = higher chance.
+	def get_event_using_frequency(self, event_possibilites):
+		inverse_occurences = []	
+		for i in range(len(event_possibilites)):
+			inverse_occurences.append(1 / (self.event_frequencies[event_possibilites[i]]))
+		result = random.choices(event_possibilites, weights=inverse_occurences, k=1)
+		self.event_frequencies[result[0]] += 1
+		return result[0]
