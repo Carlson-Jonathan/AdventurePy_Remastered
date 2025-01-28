@@ -112,8 +112,9 @@ class Utilities:
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 		
 	def show_save_load_prompt(width):
-		options = Utilities.format_options(["New Game", "Load Saved Game"])
-		return Utilities.format_opening_menus(options, len(options),
+		options = ["New Game", "Load Saved Game"]
+		formatted_options = Utilities.format_options(options)
+		return Utilities.format_opening_menus(formatted_options, len(options),
 			"Make your selection: ", "num", width)
 	
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -146,8 +147,8 @@ class Utilities:
 
 	def prompt_for_game_to_load(save_files, width):
 		file_options = Utilities.format_options(save_files)
-		player_input = int(Utilities.format_opening_menus(file_options, len(file_options),
-			"Select a save to load: ", "str", width))
+		player_input = int(Utilities.format_opening_menus(file_options, len(save_files),
+			"Select a save to load: ", "num", width))
 		return save_files[player_input - 1]
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
