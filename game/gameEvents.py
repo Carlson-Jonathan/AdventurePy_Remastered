@@ -6,6 +6,7 @@ class Game_Events:
 	def __init__(self):
 		self.next_event = "hallway"
 		self.event_frequencies = {}
+		self.main_event_frequencies = {"hallway": 1, "tunnel_fork": 1, "river": 1}
 		self.all_event_functions = set()
 
 		self.game_data = {
@@ -162,7 +163,11 @@ class Game_Events:
 					self.door_kick_empty,
 					self.door_kick_bathroom
 				],
-				"selection3": [self.river_event_mirror],
+				"selection3": [
+					self.door_lock_pick_good,
+					self.door_lock_pick_bad,
+					self.door_lock_pick_none
+				],
 				"selection4": [Utilities.save_game]
 			},
 			"mirror": {
@@ -254,6 +259,24 @@ class Game_Events:
 	def door_knock_door_opens(self, player: Player):
 		self.shuffle_events()
 		return ("Door opens")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_lock_pick_good(self, player: Player):
+		self.shuffle_events()
+		return ("Lock pick good")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def door_lock_pick_bad(self, player: Player):
+		self.shuffle_events()
+		return ("Lock pick bad")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_lock_pick_none(self, player: Player):
+		self.shuffle_events()
+		return ("Lock pick none")	
 
 	###################################### River Events ############################################
 
@@ -1043,9 +1066,8 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------				
 
 	def shuffle_events(self):
-		events = ["hallway", "tunnel_fork", "river"]
-		rand_num = random.randint(0, 2)
-		self.next_event = events[rand_num]
+		main_events = ["hallway", "tunnel_fork", "river"]
+		self.next_event = self.get_event_using_frequency(main_events, self.main_event_frequencies)
 
 	# ----------------------------------------------------------------------------------------------
 		
@@ -1055,10 +1077,10 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------		
 
 	# Returns an event based on how frequently it has been used so far. Less frequent = higher chance.
-	def get_event_using_frequency(self, event_possibilites):
+	def get_event_using_frequency(self, event_possibilites, event_frequencies):
 		inverse_occurences = []	
 		for i in range(len(event_possibilites)):
-			inverse_occurences.append(1 / (self.event_frequencies[event_possibilites[i]]))
+			inverse_occurences.append(1 / (event_frequencies[event_possibilites[i]]))
 		result = random.choices(event_possibilites, weights=inverse_occurences, k=1)
-		self.event_frequencies[result[0]] += 1
+		event_frequencies[result[0]] += 1
 		return result[0]

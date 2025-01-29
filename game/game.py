@@ -9,6 +9,7 @@ class Game:
 		self.game_events = Game_Events()
 		self.events_data = self.game_events.game_data
 		self.display_width = 75
+		self.mains = {"hallway": 0, "tunnel_fork": 0, "river": 0}
 		self.start_game()
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,7 +40,8 @@ class Game:
 		player_input = Utilities.get_player_input("Action: ", num_options)
 		event_possibilites = (self.events_data[event_name][f"selection{player_input}"])
 		num_possibilites = len(event_possibilites)
-		chosen_event = self.game_events.get_event_using_frequency(event_possibilites)
+		chosen_event = self.game_events.get_event_using_frequency(event_possibilites,
+			self.game_events.event_frequencies)
 		
 		Utilities.draw_game_frame(header, full_event["event"](self.player), options,
 			chosen_event(self.player), self.display_width)
@@ -58,6 +60,10 @@ class Game:
 
 			# Run an event and pause so the player can read it
 			player_input = self.perform_event(header, self.events_data[self.game_events.next_event])
+
+			if self.game_events.next_event in self.mains:
+				self.mains[self.game_events.next_event] += 1
+			print(self.mains)
 			input()
 
 			# Process 'game over' if player dies
