@@ -16,7 +16,7 @@ class Game:
 	# The introduction and setup sequence when the game begins		
 	def run_start_sequence(self):
 		player_input = Utilities.show_save_load_prompt(self.display_width)
-		
+
 		if player_input == 1:
 			self.player.name = input("Enter your character's name: ")
 			Utilities.clear_screen()
@@ -27,20 +27,21 @@ class Game:
 		
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	def perform_event(self, header, event):
-		num_options = len(event["options"])
-		options = Utilities.format_options(event["options"])
+	def perform_event(self, header, full_event):
+		event_name = self.game_events.next_event
+		num_options = len(full_event["options"])
+		options = Utilities.format_options(full_event["options"])
 
-		Utilities.draw_game_frame(header, event["event"](self.player), options,
-			event["action"](self.player), self.display_width)
-		
+		Utilities.draw_game_frame(header, full_event["event"](self.player), options,
+			full_event["action"](self.player), self.display_width)
+
 		# Choose a random event based on the player selection
 		player_input = Utilities.get_player_input("Action: ", num_options)
-		selection_size = len(self.events_data[self.game_events.next_event][f"selection{player_input}"])
-		chosen_event = self.game_events.get_event_using_frequency(
-			self.events_data[self.game_events.next_event][f"selection{player_input}"])
+		event_possibilites = (self.events_data[event_name][f"selection{player_input}"])
+		num_possibilites = len(event_possibilites)
+		chosen_event = self.game_events.get_event_using_frequency(event_possibilites)
 		
-		Utilities.draw_game_frame(header, event["event"](self.player), options,
+		Utilities.draw_game_frame(header, full_event["event"](self.player), options,
 			chosen_event(self.player), self.display_width)
 
 		return player_input
@@ -62,3 +63,36 @@ class Game:
 			# Process 'game over' if player dies
 			if(self.player.is_dead):
 				self.game_events.death(self.display_width)
+
+
+'''
+Ideas:
+Go to an area where there is an underground river, a mirror on the wall, and a door
+	River:
+		Something is floating down the river
+		A monster jumps out of the water
+		Take a drink and take damage
+	Mirror
+		Options:
+			Change Name
+			View Stats
+			Get hint
+			Modify width
+	Door
+		Options
+			Kick it in
+				Monster
+				Treasure Room
+				Empty
+				Bathroom
+			Knock
+				Stinky
+					Did you eat the gnome?
+						Bring the gnome hat and learn to read the spell book
+				Gnome
+					Are you conspiring with the leprechaun?
+						Bring the staff and learn multi-strikes
+				No answer
+				Opens 
+
+'''				

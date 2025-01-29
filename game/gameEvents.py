@@ -132,11 +132,169 @@ class Game_Events:
 					self.nothing					
 				],
 				"selection4": [Utilities.save_game]
+			},
+			"river": {
+				"event": self.river_event,
+				"options": ["Approach river", "Open door", "Look at mirror", "Save Game"],
+				"action": self.generic_action_prompt,
+				"selection1": [
+					self.river_event_monster,
+					self.river_event_flotsam,
+					self.river_event_drink
+				],
+				"selection2": [self.river_event_door],
+				"selection3": [self.river_event_mirror],
+				"selection4": [Utilities.save_game]
+			},
+			"door": {
+				"event": self.door_event,
+				"options": ["Knock on door", "Kick in door", "Pick lock", "Save Game"],
+				"action": self.generic_action_prompt,
+				"selection1": [
+					self.door_knock_stinky,
+					self.door_knock_gnome,
+					self.door_knock_no_answer,
+					self.door_knock_door_opens
+				],
+				"selection2": [
+					self.door_kick_monster,
+					self.door_kick_treasure_room,
+					self.door_kick_empty,
+					self.door_kick_bathroom
+				],
+				"selection3": [self.river_event_mirror],
+				"selection4": [Utilities.save_game]
+			},
+			"mirror": {
+				"event": self.mirror_event,
+				"options": ["Change name", "View stats", "Modify width", "Save Game"],
+				"action": self.generic_action_prompt,
+				"selection1": [self.mirror_change_name],
+				"selection2": [self.mirror_view_stats],
+				"selection3": [self.mirror_change_width],
+				"selection4": [Utilities.save_game]
 			}
 		}
 
 		self.populate_event_functions(self.game_data)
 		self.initialize_event_frequencies()
+
+	##################################### Mirror Events ############################################
+
+	def mirror_event(self, player: Player):
+		return ("Mirror - change name")
+
+	# ----------------------------------------------------------------------------------------------
+	
+	def mirror_change_name(self, player: Player):
+		self.shuffle_events()
+		return ("Mirror - change name")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def mirror_view_stats(self, player: Player):
+		self.shuffle_events()
+		return ("Mirror - view stats")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def mirror_change_width(self, player: Player):
+		self.shuffle_events()
+		return ("Mirror - change width")		
+
+	###################################### Door Events #############################################
+		
+	def door_event(self, player: Player):
+		return ("Approaches door and options")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def door_kick_monster(self, player: Player):
+		self.shuffle_events()
+		return ("Door kick - monster")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_kick_treasure_room(self, player: Player):
+		self.shuffle_events()
+		return ("Door kick treasure room.")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def door_kick_empty(self, player: Player):
+		self.shuffle_events()
+		return ("Door kick - empty")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_kick_bathroom(self, player: Player):
+		self.shuffle_events()
+		return ("Door kick - bathroom")	
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_knock_stinky(self, player: Player):
+		self.shuffle_events()
+		return ("Stinky opens the door")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_knock_gnome(self, player: Player):
+		self.shuffle_events()
+		return ("Gnome opens the door")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def door_knock_no_answer(self, player: Player):
+		self.shuffle_events()
+		return ("No answer, gives up")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def door_knock_door_opens(self, player: Player):
+		self.shuffle_events()
+		return ("Door opens")
+
+	###################################### River Events ############################################
+
+	def river_event(self, player: Player):
+		return ("River event placeholder")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def river_event_door(self, player: Player):
+		self.next_event = "door"
+		return ("Walk over to the door.")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def river_event_mirror(self, player: Player):
+		self.next_event = "mirror"
+		return ("Walk over to the mirror")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def river_event(self, player: Player):
+		self.shuffle_events()
+		return ("River event placeholder")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def river_event_monster(self, player: Player):
+		self.shuffle_events()
+		return ("River event monster placeholder")
+
+	# ----------------------------------------------------------------------------------------------
+
+	def river_event_flotsam(self, player: Player):
+		self.shuffle_events()
+		return ("River event flotsam placeholder")
+
+	# ----------------------------------------------------------------------------------------------
+	
+	def river_event_drink(self, player: Player):
+		self.shuffle_events()
+		return ("River event drink placeholder")
 
 	################################## Tunnel Fork Events ##########################################
 
@@ -885,8 +1043,8 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------				
 
 	def shuffle_events(self):
-		events = ["hallway", "tunnel_fork"]
-		rand_num = random.randint(0,1)
+		events = ["hallway", "tunnel_fork", "river"]
+		rand_num = random.randint(0, 2)
 		self.next_event = events[rand_num]
 
 	# ----------------------------------------------------------------------------------------------
