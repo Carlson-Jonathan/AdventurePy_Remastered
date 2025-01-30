@@ -10,6 +10,7 @@ class Game:
 		self.events_data = self.game_events.game_data
 		self.display_width = 75
 		self.mains = {"hallway": 0, "tunnel_fork": 0, "river": 0}
+		self.debug_mode = False
 		self.start_game()
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,7 +64,8 @@ class Game:
 
 			if self.game_events.next_event in self.mains:
 				self.mains[self.game_events.next_event] += 1
-			print(self.mains)
+			if self.debug_mode:
+				print(self.mains)
 			input()
 
 			# Process 'game over' if player dies

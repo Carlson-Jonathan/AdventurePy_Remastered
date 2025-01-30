@@ -143,11 +143,11 @@ class Game_Events:
 					self.river_event_flotsam,
 					self.river_event_drink
 				],
-				"selection2": [self.river_event_door],
-				"selection3": [self.river_event_mirror],
+				"selection2": [self.river_open_door],
+				"selection3": [self.river_approach_mirror],
 				"selection4": [Utilities.save_game]
 			},
-			"door": {
+			"door_event": {
 				"event": self.door_event,
 				"options": ["Knock on door", "Kick in door", "Pick lock", "Save Game"],
 				"action": self.generic_action_prompt,
@@ -187,137 +187,262 @@ class Game_Events:
 	##################################### Mirror Events ############################################
 
 	def mirror_event(self, player: Player):
-		return ("Mirror - change name")
+		return (f"There is an image that seems to *shift* every time {player.name} tries to focus "
+		  	f"on it. It has the eerie feeling of being watched by an unknown presence, but every "
+			f"time {player.name} tries to describe it, the details slip through their fingers like "
+			f"sand. What was that? Was it a shadow, or just the light? {player.name} can’t say "
+			f"for sure, but they feel a strange sense of unease. Suddenly, a voice whispers in "
+			f"their head, offering… something. What is it? They can’t quite tell, but it seems "
+			f"important. It seems to be speaking- past {player.name}?")
 
 	# ----------------------------------------------------------------------------------------------
 	
 	def mirror_change_name(self, player: Player):
 		self.shuffle_events()
-		return ("Mirror - change name")
+		return (f"{player.name} feels an odd compulsion, as if something is guiding their hands. "
+			f"Before they can stop themselves, a dizzying sensation takes over, and the world "
+			f"around them warps. {player.name} blinks, suddenly unsure of who they are. Were they "
+			f"always this way? Memories oddly begin to slip away, replaced by something fuzzy and "
+			f"unfamiliar. The strange sensation lingers, and {player.name} can’t shake the feeling "
+			f"that their past has been rewritten, though they can’t recall how or why. Whatever just "
+			f"happened, it feels deeply unsettling.")
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def mirror_view_stats(self, player: Player):
 		self.shuffle_events()
-		return ("Mirror - view stats")
+		return (f"{player.name} stares at the sudden display of stats and items, unsure how "
+			f"they got there. They don’t remember asking for this—what is all this stuff? "
+			f"Why are there numbers next to things they don’t even recognize? {player.name} feels "
+			f"like they’re being examined by some unseen force, poking around in their most private "
+			f"details. They shake their head, trying to shake the weird sensation off. It’s as if "
+			f"someone’s looking through their personal diary and critiquing their choices. Oddly, "
+			f"{player.name} can't help but wonder if this is how a hamster feels when it’s in a cage.")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def mirror_change_width(self, player: Player):
 		self.shuffle_events()
-		return ("Mirror - change width")		
+		return (f"{player.name} notices the world suddenly *stretching* and *squishing* as if "
+			f"someone's pulling and squeezing it like an old rubber band. Their surroundings "
+			f"warp, the walls elongate, and the ground seems to shrink under their feet. It’s like "
+			f"the universe itself got a little too excited about adjusting its settings. Just as "
+			f"quickly, everything snaps back into place, leaving {player.name} dizzy and wondering "
+			f"if they just imagined the whole thing. One thing's for sure: {player.name}'s vision "
+			f"has never felt more... wide? Narrow? Neither. Probably neither.")
+		
 
 	###################################### Door Events #############################################
 		
 	def door_event(self, player: Player):
-		return ("Approaches door and options")
+		self.shuffle_events()
+		return (f"A rusty keyhole stares back mockingly, as if daring {player.name} to try "
+		  	"something clever. Whether this door hides treasure or trouble is unclear, but one "
+			"thing is certain—it won't open on its own.") 
 
 	# ----------------------------------------------------------------------------------------------
 
 	def door_kick_monster(self, player: Player):
 		self.shuffle_events()
-		return ("Door kick - monster")
+		return (f"{player.name} rears back and delivers a ferocious kick to the door. With a loud "
+			f"*BANG*, it flies open, slamming against the cavern wall. Dust swirls in the dim "
+			f"light as {player.name} stands triumphantly, ready to claim victory over—oh. Oh no. "
+			f"That is *not* treasure. That is a very large, very angry creature blinking awake "
+			f"from its slumber. It stretches, yawns, and fixes its hungry gaze on {player.name}. "
+			f"Okay, so maybe kicking wasn't the best idea. In my defense, I thought the door was "
+			f"sturdier. Who keeps approving these flimsy doors?!")  
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def door_kick_treasure_room(self, player: Player):
-		self.shuffle_events()
-		return ("Door kick treasure room.")
+		self.next_event = "treasure_room"
+		return (f"{player.name} takes a deep breath, winds up, and delivers a thunderous kick to "
+			f"the center of the door. With a deafening *CRACK*, the old wood gives way, swinging "
+			f"open so violently it nearly jumps off its hinges. {player.name} stumbles forward, "
+			f"bracing for whatever doom surely awaits… but instead, the flickering torchlight "
+			f"reveals heaps of gold, glittering jewels, and priceless artifacts piled high. "
+			f"Huh. That actually worked? I mean… of *course* it worked! That was totally meant "
+			f"to happen. Yup. Definitely. Excuse me while I go revise *all* my notes.")  
 
 	# ----------------------------------------------------------------------------------------------
 
 	def door_kick_empty(self, player: Player):
 		self.shuffle_events()
-		return ("Door kick - empty")
+		return (f"{player.name} takes a step back, squares up, and delivers a mighty kick to the "
+			f"center of the door. There’s a loud *thud*... followed by absolutely nothing. "
+			f"The door doesn’t budge. Not even a little. Instead, a dull ache creeps up "
+			f"{player.name}'s leg as the door stands victorious. Somewhere, in the vast cosmic "
+			f"balance of things, the door just earned bragging rights. {player.name} can almost "
+			f"hear it whisper, ‘Nice try.’ Feeling dejected, {player.name} wanders away head hanging.")  
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def door_kick_bathroom(self, player: Player):
 		self.shuffle_events()
-		return ("Door kick - bathroom")	
+		rand_num = random.randint(40, 65)
+		player.modify_health(rand_num)
+		return (f"{player.name} winds up and launches a mighty kick at the door, sending it "
+			f"crashing open. Heart pounding, adrenaline surging, {player.name} braces for "
+			f"whatever horrors lurk beyond—only to be met with the sight of a humble, well-kept "
+			f"restroom. A single torch flickers over a pristine chamber pot, practically inviting. "
+			f"After downing all those health potions, nature *has* been calling. Relieved in more "
+			f"ways than one, {player.name} feels refreshed and recovers {rand_num} health. "
+			f"Honestly, this might be the greatest treasure of all!")  
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def door_knock_stinky(self, player: Player):
-		self.shuffle_events()
-		return ("Stinky opens the door")
-	
+		return (f"{player.name} knocks lightly on the door, and to their surprise, it creaks open. "
+			f"Standing there, arms crossed and looking rather unimpressed, is none other than "
+			f"Stinky the leprechaun. His tiny, green hat is askew, and his nose twitches as if "
+			f"he’s already smelling the trouble in the air. \"Well, well, well, if it isn’t the "
+			f"champion of poor decisions,\" he says, his voice dripping with sarcasm. \"What is it, "
+			f"then? Come to ask me for more luck, or are you just here to waste my time?\"")
+
 	# ----------------------------------------------------------------------------------------------
 
 	def door_knock_gnome(self, player: Player):
 		self.shuffle_events()
-		return ("Gnome opens the door")
+		return (f"{player.name} knocks on the door, and it slowly creaks open. On the other side, "
+			f"standing with his back against the wall and eyes wide as saucers, is a tiny gnome. "
+			f"He stares up at {player.name}, trembling like a leaf in the wind, his hands raised "
+			f"defensively. \"P-Please don’t hurt me! I-I’m not the one who—\" he stammers, eyes darting "
+			f"around, clearly trying to find an escape route. \"I-I just wanted to... uh... find a nice "
+			f"corner to hide in! Please, I promise I’m not important!\"")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def door_knock_no_answer(self, player: Player):
 		self.shuffle_events()
-		return ("No answer, gives up")
-	
+		return (f"{player.name} knocks firmly on the door, the sound echoing eerily in the silence. "
+			f"Then… nothing. No creak, no footsteps, no mysterious voice from behind the door. Just "
+			f"the quiet rustling of the cavern and the faint drip of water from somewhere above. "
+			f"{player.name} knocks again, a little louder this time, but still, not a peep. It’s almost "
+			f"like the door itself is pretending not to hear. Maybe it’s on a lunch break? In any case, "
+			f"{player.name} is left standing there, feeling slightly awkward. This is getting real weird.")
+
 	# ----------------------------------------------------------------------------------------------
 
 	def door_knock_door_opens(self, player: Player):
 		self.shuffle_events()
-		return ("Door opens")
+		return (f"{player.name} raps gently on the ancient wooden door, the sound echoing faintly "
+			f"through the cavern. For a moment, nothing happens. Then, with a slow, ominous creak, "
+			f"the door swings open on its own. Huh. That wasn’t supposed to happen. I distinctly "
+			f"remember writing that this door was locked. Hang on—let me check my notes… Yep, "
+			f"right here: ‘The door is locked and will not open on its own.’ So either I got the "
+			f"wrong script, or {player.name} just has incredibly persuasive knuckles.")  
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def door_lock_pick_good(self, player: Player):
 		self.shuffle_events()
-		return ("Lock pick good")
+		player.trolls_blood += 1
+		return (f"{player.name} carefully works the lock, the pick sliding smoothly into place. With a "
+			f"satisfying *click*, the door creaks open. Inside, {player.name} spots a small vial of trolls blood "
+			f"on a pedestal. Without hesitation, {player.name} grabs it, uncorks the bottle, and drinks it in one "
+			f"gulp. The liquid tastes oddly metallic, but it’s not unpleasant. As the last drop slips down, "
+			f"{player.name} wonders out loud, \"Why do I always drink strange potions I find?\" Before they can "
+			f"ponder it further, a surge of strength rushes through their veins but no health is restored. "
+			f"Must have a delayed effect.")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def door_lock_pick_bad(self, player: Player):
 		self.shuffle_events()
-		return ("Lock pick bad")
+		rand_num = random.randint(1, 10)
+		player.modify_health(-rand_num)
+		if player.invisibility_potions > 0:
+			item = "an invisibility potion"
+			player.invisibility_potions -= 1
+			comment = "Guess it wasn't *that* invisible..."
+		else:
+			items = ["a sack of marbles", "a tuna sadwich", "a wooden nickle", "a jumping bean",
+				"an unread love letter", "a picture of a narwhal"]
+			item = random.choice(["a sack of marbles", "a rotten tuna sandwich", "a wooden nickel", 
+							"a jumping bean", "an unread love letter", "a picture of a gnarwall"])
+			comment = "{player.name was probably better off without that...}"
+		death_message = player.check_for_death()
+		return (f"{player.name} carefully kneels down and starts fiddling with the lock, the sound of "
+			f"the lockpick scraping against the metal filling the air. For a moment, it seems like "
+			f"progress is being made—then, with a sharp *snap*, the pick breaks in half! As {player.name} "
+			f"fumbles to recover, a hidden mechanism inside the door activates, releasing a cloud of toxic "
+			f"fumes. {player.name} stumbles backward, coughing, and feels a sharp pain in their chest. "
+			f"That was not the type of treasure {player.name} had in mind. {rand_num} damage is dealt "
+			f"and {player.name} loses {item} they were carrying. {comment} {death_message}")
 	
 	# ----------------------------------------------------------------------------------------------
 
 	def door_lock_pick_none(self, player: Player):
 		self.shuffle_events()
-		return ("Lock pick none")	
+		return (f"{player.name} carefully works the lock, concentrating hard, but after what feels like "
+			f"an eternity, nothing happens. The lockpick barely moves. {player.name} lets out a frustrated "
+			f"sigh and stands up. It's as if the lock is taunting them, saying, 'Nice try, but not today.' "
+			f"Maybe next time, {player.name}. Or perhaps just stick to the good ol' fashioned door-kicking method...")
+
 
 	###################################### River Events ############################################
 
 	def river_event(self, player: Player):
-		return ("River event placeholder")
+		return (f"{player.name} steps cautiously into a vast cavern, the flickering torchlight barely "
+			f"illuminating the eerie surroundings. A slow-moving river glistens in the dim light, "
+			f"its dark waters whispering secrets as it winds through the underground expanse. To "
+			f"the side, an ancient wooden door stands defiantly, its surface scarred with deep "
+			f"gashes—either from age or something with very sharp claws. And against the cavern "
+			f"wall, a tall, ornate mirror sits inexplicably, its silver frame untarnished despite "
+			f"the damp air. The glass shimmers oddly, reflecting more than just the torchlight… "
+			f"or maybe it's just {player.name}'s imagination. Either way, something here demands "
+			f"attention.")
 	
 	# ----------------------------------------------------------------------------------------------
-
-	def river_event_door(self, player: Player):
-		self.next_event = "door"
-		return ("Walk over to the door.")
+	
+	def river_open_door(self, player: Player):
+		self.next_event = "door_event"
+		return (f"{player.name} steps up to the massive wooden door, its surface worn and riddled "
+			f"with deep scratches. A thick iron handle juts out, cold to the touch, but as "
+			f"{player.name} gives it a pull, the door refuses to budge. Locked. Of course.")
 
 	# ----------------------------------------------------------------------------------------------
 
-	def river_event_mirror(self, player: Player):
+	def river_approach_mirror(self, player: Player):
 		self.next_event = "mirror"
-		return ("Walk over to the mirror")
-
-	# ----------------------------------------------------------------------------------------------
-
-	def river_event(self, player: Player):
-		self.shuffle_events()
-		return ("River event placeholder")
+		return ("Jonny steps cautiously toward the mirror, its surface rippling slightly "
+			f"like water. As Jonny peers into it, something *moves* within the "
+			f"reflection—but it’s not Jonny's face staring back. It’s something… else.")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def river_event_monster(self, player: Player):
 		self.shuffle_events()
-		return ("River event monster placeholder")
-
+		return (f"{player.name} kneels down to drink from the river, but just as they do, a "
+		  	f"massive creature leaps from the river with a loud splash! {player.name} barely "
+			f"manages to dodge as fangs snap at the air. Apparently, this river's not just "
+			f"*thirsty*—it’s got some furious company. {player.name} braces for battle as the "
+			f"monster snarls and prepares to strike!")
+	
 	# ----------------------------------------------------------------------------------------------
 
 	def river_event_flotsam(self, player: Player):
 		self.shuffle_events()
-		return ("River event flotsam placeholder")
+		rand_num = random.randint(30, 50)
+		player.modify_health(rand_num)
+		return (f"{player.name} watches the river as they ponder their next move, when suddenly "
+			f"a health potion floats down the current, bobbing gently toward them. With a curious "
+			f"frown, {player.name} reaches out and grabs it, unsure of how it ended up here. But hey, "
+			f"free potion, right? {player.name} drinks it, feeling a rush of rejuvenation. Their health "
+			f"recovers {rand_num}, and for once, the river is actually looking out for them!")
 
 	# ----------------------------------------------------------------------------------------------
 	
 	def river_event_drink(self, player: Player):
 		self.shuffle_events()
-		return ("River event drink placeholder")
+		rand_num = random.randint(5, 20)
+		player.modify_health(-rand_num)
+		death_message = player.check_for_death()
+		return (f"{player.name} kneels at the river, thirst gnawing at them. After guzzling "
+			f"potions, they decide to drink from the river. The water feels cool, but as soon as "
+			f"it hits their stomach, they regret it. A burning sensation spreads, making them wish "
+			f"they'd stuck with potions. Polluted? Tainted? {player.name} takes {rand_num} damage, "
+			f"feeling like the river has a personal vendetta against them. {death_message}")
 
 	################################## Tunnel Fork Events ##########################################
 
@@ -844,9 +969,9 @@ class Game_Events:
 			f"Just what {player.name} needed! {player.name} pops the lid and gulps it down "
 				f"regaining {rand_health_num} health! {player.name} then bids farewell to "
 				f"Stinky. Maybe {player.name} will encounter him again?",
-			f"Well that sure looks tasty! {player.name} tips the contents of the vile and "
+			f"Well that sure looks tasty! {player.name} tips the contents of the vial and "
 				f"gulps it down. \"No! You are supposed to... oh nevermind.\" Stinky says as "
-				f"{player.name} licks the remaining fluid from the opening of the vile. Feeling "
+				f"{player.name} licks the remaining fluid from the opening of the vial. Feeling "
 				f"a bit loopy, {player.name} wanders away toward visions of sugar plumbs.",
 			f"How did Stinky fit a 6' pole in that little sack? What does it matter? {player.name} "
 				f"should be able to use this to fight back the monsters. "
