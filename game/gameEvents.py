@@ -1,5 +1,6 @@
 from .utilities import Utilities
 from .player import Player
+from . import monster
 import random
 
 class Game_Events:
@@ -8,6 +9,7 @@ class Game_Events:
 		self.event_frequencies = {}
 		self.main_event_frequencies = {"hallway": 1, "tunnel_fork": 1, "river": 1}
 		self.all_event_functions = set()
+		self.monster = monster.generate_monster()
 
 		self.game_data = {
 			"hallway": {
@@ -16,7 +18,7 @@ class Game_Events:
 				"action": self.generic_action_prompt,
 				"selection1": [
 					self.nothing,
-					self.monster,
+					self.monster_encounter,
 					self.hallway_trap_good,
 					self.hallway_trap_bad,
 					self.hallway_trap_none,
@@ -26,7 +28,7 @@ class Game_Events:
 					self.find_treasure_chest
 				],
 				"selection2": [
-					self.monster,
+					self.monster_encounter,
 					self.grate_good,
 					self.grate_bad,
 					self.grate_none,
@@ -114,7 +116,7 @@ class Game_Events:
 					self.tunnel_fork_left_good,
 					self.tunnel_fork_left_bad,
 					self.tunnel_fork_left_none,
-					self.monster,
+					self.monster_encounter,
 					self.nothing,
 					self.find_treasure_chest
 				],
@@ -122,14 +124,14 @@ class Game_Events:
 					self.tunnel_fork_right_good,
 					self.tunnel_fork_right_bad,
 					self.tunnel_fork_right_none,
-					self.monster,
+					self.monster_encounter,
 					self.find_treasure_chest
 				],
 				"selection3": [
 					self.tunnel_fork_sing_good,
 					self.tunnel_fork_sing_bad,
 					self.tunnel_fork_sing_none,
-					self.monster,
+					self.monster_encounter,
 					self.nothing					
 				],
 				"selection4": [Utilities.save_game]
@@ -178,11 +180,62 @@ class Game_Events:
 				"selection2": [self.mirror_view_stats],
 				"selection3": [self.mirror_change_width],
 				"selection4": [Utilities.save_game]
+			},
+			"combat": {
+				"event": self.combat_event,
+				"options": ["Attack", "Flee", "Change Weapon", "Lay Down and Die"],
+				"action": self.generic_action_prompt,
+				"selection1": [self.combat_attack],
+				"selection2": [self.mirror_view_stats],
+				"selection3": [self.mirror_change_width],
+				"selection4": [Utilities.save_game]
 			}
 		}
 
 		self.populate_event_functions(self.game_data)
 		self.initialize_event_frequencies()
+
+	##################################### Combat Events ############################################
+
+	def combat_event(self, player: Player):
+		return (f"The monster steps forward—a hulking {self.monster.name}, its many eyes glinting in the dim light. "
+			f"Its spindly legs shift with unnatural grace, clicking against the stone with each movement. "
+			f"A low hiss escapes its fanged maw, the air thick with the scent of damp earth and decay. "
+			f"This thing isn’t just lurking—it’s ready to strike.")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def combat_attack(self, player: Player):
+		damage = random.randint(1, 10)
+		evaded = random.randint(1, 10)
+		monster_evaded = f"The {self.monster.name} evades {player.name}'s attack!"
+		landed_damage = f"{player.name} strikes the {self.monster.name} and does {damage} damage!"
+		if evaded < 7:
+			# reduce monster health
+			# check for death
+			    # Set next event
+			retaliation = self.monster_retaliation(player)
+			return (f"{landed_damage} {retaliation}")
+		else:
+			return monster_evaded
+		
+	# ----------------------------------------------------------------------------------------------
+
+	def monster_retaliation(self, player: Player):
+		damage = random.randint(10, 20)
+		evaded = random.randint(1, 12)
+		player_evaded = f"{player.name} jumps back barely evading the {self.monster.name}'s strike!"
+		landed_damage = f"The {self.monster.name} strikes {player.name} causing {damage} points of damage!"
+		do_nothing = f"The {self.monster.name} hisses and snarls as it prepares for its next attack."
+		if evaded < 7:
+			if evaded < 3:
+				return do_nothing
+			player.modify_health(-damage)
+			death_message = player.check_for_death()
+			return (f"{landed_damage} {death_message}")
+		else:
+			return player_evaded
+		   
 
 	##################################### Mirror Events ############################################
 
@@ -243,7 +296,7 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def door_kick_monster(self, player: Player):
-		self.shuffle_events()
+		self.next_event = "combat"
 		return (f"{player.name} rears back and delivers a ferocious kick to the door. With a loud "
 			f"*BANG*, it flies open, slamming against the cavern wall. Dust swirls in the dim "
 			f"light as {player.name} stands triumphantly, ready to claim victory over—oh. Oh no. "
@@ -412,7 +465,7 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def river_event_monster(self, player: Player):
-		self.shuffle_events()
+		self.next_event = "combat"
 		return (f"{player.name} kneels down to drink from the river, but just as they do, a "
 		  	f"massive creature leaps from the river with a loud splash! {player.name} barely "
 			f"manages to dodge as fangs snap at the air. Apparently, this river's not just "
@@ -791,6 +844,7 @@ class Game_Events:
 	##################################### Yelling Events ###########################################
 
 	def yell_monster(self, player: Player):
+		self.next_event = "combat"
 		return (f"{player.name} hollers into the darkness and hears an echoing voice followed "
 		  	f"by a deep growl. {player.name}'s yells are responded to by a monster!")
 	
@@ -928,7 +982,7 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 	
 	def dirpy_gnomey_bad(self, player: Player):
-		self.shuffle_events()
+		self.next_event = "combat"
 		return (f"{player.name} stares silently at the gnome. It sniffs and begins making an odd "
 			f"growling sound. The gnome begins increasing in size and transforms into a monster!")
 	
@@ -1075,8 +1129,8 @@ class Game_Events:
 	
 	################################# Miscellaneous Events #########################################
 
-	def monster(self, player: Player):
-		self.shuffle_events()
+	def monster_encounter(self, player: Player):
+		self.next_event = "combat"
 		return (f"As {player.name} takes a step forward, a loud rustling comes from the shadows. "
 			f"Before they can react, a giant, furry monster leaps out with a terrifying roar! "
 			f"Well, that was unexpected. {player.name} stumbles back, face pale, as the creature "
