@@ -10,6 +10,7 @@ class Game_Events:
 		self.main_event_frequencies = {"hallway": 1, "tunnel_fork": 1, "river": 1}
 		self.all_event_functions = set()
 		self.monster = monster.generate_monster()
+		self.player_weapons = "Fists"
 
 		self.game_data = {
 			"hallway": {
@@ -186,9 +187,18 @@ class Game_Events:
 				"options": ["Attack", "Flee", "Change Weapon", "Lay Down and Die"],
 				"action": self.generic_action_prompt,
 				"selection1": [self.combat_attack],
-				"selection2": [self.mirror_view_stats],
-				"selection3": [self.mirror_change_width],
+				"selection2": [self.combat_flee],
+				"selection3": [self.combat_change_weapon],
 				"selection4": [Utilities.save_game]
+			},
+			"combat_weapon": {
+				"event": self.combat_event,
+				"options": [self.player_weapons],
+				"action": self.equip_weapon_action,
+				"selection1": [self.equip_weapon1],
+				"selection2": [self.equip_weapon2],
+				"selection3": [self.equip_weapon3],
+				"selection4": [self.equip_weapon4]
 			}
 		}
 
@@ -203,6 +213,52 @@ class Game_Events:
 			f"A low hiss escapes its fanged maw, the air thick with the scent of damp earth and decay. "
 			f"This thing isn’t just lurking—it’s ready to strike.")
 	
+	# ----------------------------------------------------------------------------------------------
+
+	def equip_weapon_action(self, player: Player):
+		if len(player.weapons) == 1:
+			return (f"Hmm, it looks like {player.name} doesn't have many options. What would you like "
+			f"etched on {player.name}'s tombstone?")
+		else:
+			return (f"Great! {player.name} has something to fight the {self.monster.name} with!"
+				f"What should {player.name} use?")
+
+	# ----------------------------------------------------------------------------------------------
+		
+	def get_weapon_equip_text(self, player: Player, weapon):
+		weapon_text = {
+			"Fists": "for a round of fisticuffs!",
+			"Sword": "to carve up some meat!",
+			"Staff": "to smash some heads!",
+			"Magic Book": "to... read a story?"}
+		self.next_event = "combat"
+		print(f"The selected weapon is {weapon}")
+		return weapon_text[weapon]
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def equip_weapon1(self, player: Player):
+		player.equipped_weapon = self.game_data["combat_weapon"]["options"][0]
+		return f"{player.name} is ready {self.get_weapon_equip_text(player, player.equipped_weapon)}"
+
+	# ----------------------------------------------------------------------------------------------
+
+	def equip_weapon2(self, player: Player):
+		player.equipped_weapon = self.game_data["combat_weapon"]["options"][1]
+		return f"{player.name} is ready {self.get_weapon_equip_text(player, player.equipped_weapon)}"
+
+	# ----------------------------------------------------------------------------------------------
+
+	def equip_weapon3(self, player: Player):
+		player.equipped_weapon = self.game_data["combat_weapon"]["options"][2]
+		return f"{player.name} is ready {self.get_weapon_equip_text(player, player.equipped_weapon)}"
+
+	# ----------------------------------------------------------------------------------------------
+
+	def equip_weapon4(self, player: Player):
+		player.equipped_weapon = self.game_data["combat_weapon"]["options"][3]
+		return f"{player.name} is ready {self.get_weapon_equip_text(player, player.equipped_weapon)}"
+
 	# ----------------------------------------------------------------------------------------------
 
 	def combat_attack(self, player: Player):
@@ -221,10 +277,31 @@ class Game_Events:
 		
 	# ----------------------------------------------------------------------------------------------
 
+	def combat_flee(self, player: Player):
+		escape = random.randint(1, 10)
+		failed = f"{player.name} attempts to flee but is unable to escape!"
+		fled = f"{player.name} turns and runs screaming like a coward! (chicken!)"
+		if escape < 7:
+			retaliation = self.monster_retaliation(player)
+			return f"{failed} {retaliation}"
+		else:
+			self.shuffle_events()
+			return fled
+		
+	# ----------------------------------------------------------------------------------------------
+
+	def combat_change_weapon(self, player: Player):
+		self.game_data["combat_weapon"]["options"] = list(player.weapons)
+		self.next_event = "combat_weapon"
+		return f"{player.name} scrambles to find a better weapon..."
+		
+	# ----------------------------------------------------------------------------------------------
+
 	def monster_retaliation(self, player: Player):
 		damage = random.randint(10, 20)
 		evaded = random.randint(1, 12)
-		player_evaded = f"{player.name} jumps back barely evading the {self.monster.name}'s strike!"
+		player_evaded = (f"The {self.monster.name} strikes at {player.name}, but {player.name} jumps "
+			f"back barely evading the {self.monster.name}'s strike!")
 		landed_damage = f"The {self.monster.name} strikes {player.name} causing {damage} points of damage!"
 		do_nothing = f"The {self.monster.name} hisses and snarls as it prepares for its next attack."
 		if evaded < 7:
@@ -794,6 +871,7 @@ class Game_Events:
 	def treasure_room_rack_good(self, player: Player):
 		self.shuffle_events()
 		player.weapons.add("Sword")
+		self.game_data["combat_weapon"]["options"] = list(player.weapons)
 		return (f"{player.name} inspects the weapons on the rack. All are rusty or rotted away "
 		  	f"except for a shiny sword that appears to be in pristine condition. This might be "
 			f"useful to fight off monsters! {player.name} takes the sword from the rack and jams "
@@ -812,6 +890,7 @@ class Game_Events:
 
 	def treasure_room_leave_good(self, player: Player):
 		player.weapons.add("Magic Book")
+		self.game_data["combat_weapon"]["options"] = list(player.weapons)
 		self.shuffle_events()
 		return (f"{player.name} has seen Indiana Jones more than once and knows what will happen if "
 		  	f"any of this cursed treasure is disturbed. {player.name} respecftully bows and starts "
@@ -1017,6 +1096,7 @@ class Game_Events:
 			player.trolls_blood += 1
 		if rand_item_num == 2:
 			player.weapons.add("Staff")
+			self.game_data["combat_weapon"]["options"] = list(player.weapons)
 		if rand_item_num == 3:
 			player.treasure_keys += 1
 		item_description = [

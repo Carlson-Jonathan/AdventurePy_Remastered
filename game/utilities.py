@@ -77,7 +77,7 @@ class Utilities:
 	def format_options(items):
 		result = []
 		for i, item in enumerate(items, start = 1):
-			result.append(f"\t{i}: {item}")
+			result.append(f"\t{i}. {item}")
 		return "\n".join(result)
 	
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

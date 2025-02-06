@@ -26,14 +26,15 @@ class Game:
 			self.game_events.print_introduction(self.player, self.display_width)
 		else:
 			Utilities.load_game(self.player, self.display_width)
+			self.events_data["combat_weapon"]["options"] = list(self.player.weapons)
 		
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def perform_event(self, header, full_event):
 		event_name = self.game_events.next_event
 		num_options = len(full_event["options"])
-		options = Utilities.format_options(full_event["options"])
 
+		options = Utilities.format_options(full_event["options"])
 		Utilities.draw_game_frame(header, full_event["event"](self.player), options,
 			full_event["action"](self.player), self.display_width)
 
