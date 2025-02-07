@@ -18,15 +18,15 @@ class Game_Events:
 				"options": ["Go down the corridor", "Climb down the grate", "Yell for help", "Save Game"],
 				"action": self.generic_action_prompt,
 				"selection1": [
-					#self.nothing,
+					self.nothing,
 					self.monster_encounter,
-					#self.hallway_trap_good,
-					#self.hallway_trap_bad,
-					#self.hallway_trap_none,
-					#self.trip_good,
-					#self.trip_bad,
-					#self.trip_none,
-					#self.find_treasure_chest
+					self.hallway_trap_good,
+					self.hallway_trap_bad,
+					self.hallway_trap_none,
+					self.trip_good,
+					self.trip_bad,
+					self.trip_none,
+					self.find_treasure_chest
 				],
 				"selection2": [
 					self.monster_encounter,
@@ -208,7 +208,7 @@ class Game_Events:
 	##################################### Combat Events ############################################
 
 	def combat_event(self, player: Player):
-		self.display_monster_stats()
+		#self.display_monster_stats()
 		return (f"The monster steps forward—a hulking {self.monster.name}, its many eyes glinting in the dim light. "
 			f"Its spindly legs shift with unnatural grace, clicking against the stone with each movement. "
 			f"A low hiss escapes its fanged maw, the air thick with the scent of damp earth and decay. "
@@ -271,18 +271,20 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def combat_attack(self, player: Player):
+		regen_message = player.apply_regeneration()
 		damage = player.get_combat_damage()
 		evaded = random.randint(1, 10)
 		monster_evaded = f"The {self.monster.name} evades {player.name}'s attack!"
 		landed_damage = f"{player.name} strikes the {self.monster.name} and does {damage} damage!"
-		if evaded < 7:
+		if evaded < 8:
 			self.monster.health -= damage
 			next_message = self.check_for_monster_death(player)
 			if next_message == "":
 				next_message = self.monster_retaliation(player)
-			return (f"{landed_damage} {next_message}")
+			return (f"{regen_message} {landed_damage} {next_message}")
 		else:
-			return monster_evaded
+			next_message = self.monster_retaliation(player)
+			return f"{regen_message} {monster_evaded} {next_message}"
 
 	# ----------------------------------------------------------------------------------------------
 		
@@ -299,13 +301,15 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def combat_flee(self, player: Player):
+		regen_message = player.apply_regeneration()
 		escape = random.randint(1, 10)
 		failed = f"{player.name} attempts to flee but is unable to escape!"
 		fled = f"{player.name} turns and runs screaming like a coward! (chicken!)"
 		if escape < 7:
 			retaliation = self.monster_retaliation(player)
-			return f"{failed} {retaliation}"
+			return f"{regen_message} {failed} {retaliation}"
 		else:
+			player.battles_fled += 1
 			self.shuffle_events()
 			return fled
 		
@@ -350,9 +354,12 @@ class Game_Events:
 	
 	def mirror_change_name(self, player: Player):
 		self.shuffle_events()
-		return (f"{player.name} feels an odd compulsion, as if something is guiding their hands. "
+		old_name = player.name
+		player.name = input("Enter a new name for your character: ")
+		return (f"{old_name} feels an odd compulsion, as if something is guiding their hands. "
 			f"Before they can stop themselves, a dizzying sensation takes over, and the world "
-			f"around them warps. {player.name} blinks, suddenly unsure of who they are. Were they "
+			f"around them warps. {old_name}... no- I mean {player.name} blinks, suddenly unsure of "
+			f"who they are. \"{old_name}?\" {player.name} wonders in confusion. Were they "
 			f"always this way? Memories oddly begin to slip away, replaced by something fuzzy and "
 			f"unfamiliar. The strange sensation lingers, and {player.name} can’t shake the feeling "
 			f"that their past has been rewritten, though they can’t recall how or why. Whatever just "
@@ -362,13 +369,34 @@ class Game_Events:
 
 	def mirror_view_stats(self, player: Player):
 		self.shuffle_events()
+		weapons = ", ".join(player.weapons)
+		ring = "yes" if {player.has_magic_ring} else "no"
+		map = "yes" if {player.has_map} else "no"
+		compass = "yes" if {player.has_compass} else "no"
+		organized_stats = (
+			f"Name: {player.name}  |  "
+			f"\nHealth: {player.health} / {player.maximum_health}  |  "
+			f"\nBase damage: {player.base_combat_damage}  |  "
+			f"\nWeapons: {weapons}  |  "
+			f"\nInvisibility Potions: {player.invisibility_potions}  |  "
+			f"\nTreasure chest keys: {player.treasure_keys}  |  "
+			f"\nHealth potions drank: {player.health_potions_drank}  | "
+			f"\nTroll's Blood potions drank: {player.trolls_blood}  |  "
+			f"\nMonsters killed: {player.monsters_killed}  |  "
+			f"\nBattles Fled: {player.battles_fled}  |  "
+			f"\nHas magic ring: {ring}  |  "
+			f"\nHas compass: {compass}  |  "
+			f"\nHas map: {map}  |  "
+			f"\nSave scum count: {player.save_scum}")
+		
 		return (f"{player.name} stares at the sudden display of stats and items, unsure how "
 			f"they got there. They don’t remember asking for this—what is all this stuff? "
 			f"Why are there numbers next to things they don’t even recognize? {player.name} feels "
 			f"like they’re being examined by some unseen force, poking around in their most private "
 			f"details. They shake their head, trying to shake the weird sensation off. It’s as if "
 			f"someone’s looking through their personal diary and critiquing their choices. Oddly, "
-			f"{player.name} can't help but wonder if this is how a hamster feels when it’s in a cage.")
+			f"{player.name} can't help but wonder if this is how a hamster feels when it’s in a cage."
+			f"\n\n{organized_stats}")
 
 	# ----------------------------------------------------------------------------------------------
 
@@ -577,6 +605,7 @@ class Game_Events:
 	def river_event_flotsam(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(30, 50)
+		player.health_potions_drank += 1
 		player.modify_health(rand_num)
 		return (f"{player.name} watches the river as they ponder their next move, when suddenly "
 			f"a health potion floats down the current, bobbing gently toward them. With a curious "
@@ -733,6 +762,7 @@ class Game_Events:
 	
 	def hallway_trap_good(self, player: Player):
 		rand_num = random.randint(20, 30)
+		player.health_potions_drank += 1
 		player.modify_health(rand_num)
 		self.shuffle_events()
 		return (f"A loud *click* is heard from a stone under {player.name}'s foot. {player.name} "
@@ -766,6 +796,7 @@ class Game_Events:
 	def trip_good(self, player: Player):
 		self.shuffle_events()
 		rand_num = random.randint(10, 30)
+		player.health_potions_drank += 1
 		player.modify_health(rand_num)
 		return (f"While prancing down the corridor, {player.name} suddenly trips over a rock! "
 			f"\nAfter getting up and dusting off, {player.name} sees that the rock was actually a health potion!"
@@ -795,6 +826,7 @@ class Game_Events:
 
 	def grate_good(self, player: Player):
 		rand_num = random.randint(15, 35)
+		player.health_potions_drank += 1
 		player.modify_health(rand_num)
 		self.shuffle_events()
 		return (f"{player.name} removes the bars and finds a ladder leading down into darkness. "
@@ -979,6 +1011,7 @@ class Game_Events:
 	
 	def yell_collapse_good(self, player: Player):
 		rand_num = random.randint(15, 35)
+		player.health_potions_drank += 1
 		player.modify_health(rand_num)
 		return (f"{player.name} screams and stomps. The tunnel walls begin to quiver. A potion "
 		  	f"bottle randomly rolls out of a pipe in the wall! {player.name} slurps it up and "
@@ -1116,8 +1149,10 @@ class Game_Events:
 		item_list = ["potion", "vial to troll's blood", "quarter staff", "treasure_key"]
 		rand_item_num = random.randint(0, 3)
 		rand_health_num = random.randint(15, 25)
-		player.modify_health(rand_health_num if rand_item_num == 0 else 0)
-		if rand_item_num == 2:
+		if rand_item_num == 0:
+			player.modify_health(rand_health_num)
+			player.health_potions_drank += 1
+		if rand_item_num == 1:
 			player.trolls_blood += 1
 		if rand_item_num == 2:
 			player.weapons.add("Staff")
@@ -1201,6 +1236,7 @@ class Game_Events:
 	def leprechaun_ask_good(self, player: Player):
 		self.shuffle_events()
 		player.modify_health(9999999)
+		player.health_potions_drank += 1
 		return (f"{player.name} suspiciously asks the leprechaun what is in the bag. \"Perhaps it "
 		  	f"be best if I show ya! Try a sample of this here potions. Satisfaction guarenteed!\" "
 			f"{player.name} takes the bottle of purple liquid from Stinky and gulps it down. "

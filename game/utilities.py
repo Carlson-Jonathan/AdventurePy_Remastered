@@ -120,6 +120,7 @@ class Utilities:
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def save_game(player: Player):
+		player.save_scum += 1
 		player_string = json.dumps(player.to_dict(), indent=4)
 		current_dir = Path(__file__).parent
 		saves_dir = current_dir / "saves"  # Pointing to the "saves" directory

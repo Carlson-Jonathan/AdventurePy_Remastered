@@ -16,11 +16,15 @@ class Player:
 		self.has_magic_ring = False
 		self.treasure_keys = 0
 		self.base_combat_damage = 5
+		self.save_scum = 0
+		self.battles_fled = 0
+		self.health_potions_drank = 0
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 
 	def modify_health(self, adjustment):
-		adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
+		if adjustment < 0:
+			adjustment = int(adjustment / 3 * 2) if self.has_magic_ring else adjustment
 		self.health += adjustment
 		self.health = min(self.health, self.maximum_health)
 		self.health = max(self.health, 0)
@@ -48,7 +52,11 @@ class Player:
 			"has_compass": self.has_compass,
 			"has_map": self.has_map,
 			"has_magic_ring": self.has_magic_ring,
-			"treasure_keys": self.treasure_keys
+			"treasure_keys": self.treasure_keys,
+			"base_combat_damage": self.base_combat_damage,
+			"save_scum": self.save_scum,
+			"battles_fled": self.battles_fled,
+			"health_potions_drank": self.health_potions_drank
 		}
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,4 +80,13 @@ class Player:
 		return self.get_base_damage() + damages[self.equipped_weapon]()
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	def apply_regeneration(self):
+		message = ""
+		if self.trolls_blood > 0:
+			regen = self.trolls_blood * random.randint(2, 5)
+			self.modify_health(regen)
+			message = f"{self.name} regenerates {regen} health!"
+		return message
+
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
