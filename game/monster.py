@@ -3,9 +3,9 @@ import random
 def generate_monster():
     monster_names = ["bug", "slime", "drake", "skeleton", "wasp"]
     name = monster_names[random.randint(0, len(monster_names) - 1)]
-    health = random.randint(40, 80)
+    health = random.randint(60, 120)
     min_damage = random.randint(5, 15)
-    max_damage = random.randint(30, 40)
+    max_damage = random.randint(20, 30)
     evasion = random.randint(1, 10)
     accuracy = random.randint(1, 10)
     return Monster(name, health, min_damage, max_damage, evasion, accuracy)

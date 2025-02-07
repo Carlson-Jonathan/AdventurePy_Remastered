@@ -369,12 +369,15 @@ class Game_Events:
 
 	def combat_attack(self, player: Player):
 		regen_message = player.apply_regeneration()
-		damage = player.get_combat_damage()
+		damage, attack_message = self.get_player_attack_details(player)
+		total_damage = damage if isinstance(damage, int) else sum(damage)
+		damage_string = (f"{damage} damage!" if isinstance(damage, int)  
+			else " + ".join(f"{v} damage!" for v in damage))
 		evaded = random.randint(1, 10)
 		monster_evaded = f"The {self.monster.name} swiftly dodges {player.name}'s attack!"
-		landed_damage = f"{player.name} hits the {self.monster.name}, dealing {damage} damage!"
+		landed_damage = f"{player.name} {attack_message} the {self.monster.name}, dealing {damage_string}"
 		if evaded < 8:
-			self.monster.health -= damage
+			self.monster.health -= total_damage
 			next_message = self.check_for_monster_death(player)
 			if next_message == "":
 				next_message = self.monster_retaliation(player)
@@ -382,6 +385,42 @@ class Game_Events:
 		else:
 			next_message = self.monster_retaliation(player)
 			return f"{regen_message} {monster_evaded} {next_message}"
+
+	# ----------------------------------------------------------------------------------------------
+		
+	def get_player_attack_details(self, player: Player):
+		attack_damage = player.get_combat_damage()
+		special_attack_message = "strikes "
+		if player.equipped_weapon == "Fists":
+			attack_type = random.choice(["spits at ", "insults ", "slaps ", "throws a rock at ", "kicks ",
+				"flicks a booger at ", "tickles ", "yells at ", "bites ", "scratches ", "pokes "])
+		elif player.equipped_weapon == "Sword":
+			attack_type = random.choice(["slashes at ", "lunges at ", "stabs ", "swings at ", "chops at "])
+		elif player.equipped_weapon == "Staff" and player.has_staff_skills:
+			special_attack = random.randint(1, 100)
+			special_attack_message = [
+				"strikes ",
+				"performs a double strike on ",
+				f"focuses hard. Triple strike! {player.name} batters the ",
+				"embraces the spirit of Kung Fu and unleashes a devestating flurry of blows on "
+			]
+			if special_attack <= 35:
+				attack_type = special_attack_message[0]
+			elif 35 < special_attack <= 65:
+				attack_damage = [player.get_combat_damage(), player.get_combat_damage()]
+				attack_type = special_attack_message[1]
+			elif 65 < special_attack <= 85:
+				attack_damage = [player.get_combat_damage(), player.get_combat_damage(),
+					player.get_combat_damage()]
+				attack_type = special_attack_message[2]
+			elif 85 < special_attack:
+				attack_damage = [player.get_combat_damage(), player.get_combat_damage(), 
+					player.get_combat_damage(), player.get_combat_damage(), player.get_combat_damage()]
+				attack_type = special_attack_message[3]
+		elif player.equipped_weapon == "Magic Book":
+			attack_type = "Player cast some spell."
+			
+		return attack_damage, attack_type
 
 	# ----------------------------------------------------------------------------------------------
 		
