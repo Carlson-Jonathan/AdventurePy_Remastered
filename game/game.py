@@ -27,6 +27,7 @@ class Game:
 		else:
 			Utilities.load_game(self.player, self.display_width)
 			self.events_data["combat_weapon"]["options"] = list(self.player.weapons)
+			self.game_events.display_width = self.player.display_width
 		
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -55,6 +56,9 @@ class Game:
 	def start_game(self):
 		self.run_start_sequence()
 		while not self.player.is_dead:
+			#Update game width for special mirror event
+			self.display_width = self.game_events.display_width
+
 			# Display the header stats
 			stats = [str(self.player.name), str(f"{self.player.health}/{self.player.maximum_health}"),
 				str(self.player.equipped_weapon)]

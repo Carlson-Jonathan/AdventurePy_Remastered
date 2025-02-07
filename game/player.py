@@ -19,6 +19,7 @@ class Player:
 		self.save_scum = 0
 		self.battles_fled = 0
 		self.health_potions_drank = 0
+		self.display_width = 75
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 
@@ -56,7 +57,8 @@ class Player:
 			"base_combat_damage": self.base_combat_damage,
 			"save_scum": self.save_scum,
 			"battles_fled": self.battles_fled,
-			"health_potions_drank": self.health_potions_drank
+			"health_potions_drank": self.health_potions_drank,
+			"display_width": 75
 		}
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

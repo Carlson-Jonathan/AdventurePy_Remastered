@@ -11,6 +11,8 @@ class Game_Events:
 		self.all_event_functions = set()
 		self.monster = monster.generate_monster()
 		self.player_weapons = "Fists"
+		self.display_width = 75
+		self.victory = False
 
 		self.game_data = {
 			"hallway": {
@@ -402,6 +404,7 @@ class Game_Events:
 
 	def mirror_change_width(self, player: Player):
 		self.shuffle_events()
+		self.display_width = Utilities.get_player_input("Enter new display width (recommended 20-300) - default = 75\nNew Width: ", 300)
 		return (f"{player.name} notices the world suddenly *stretching* and *squishing* as if "
 			f"someone's pulling and squeezing it like an old rubber band. Their surroundings "
 			f"warp, the walls elongate, and the ground seems to shrink under their feet. It’s like "
@@ -1089,9 +1092,10 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 	
 	def pokey_gnomey_bad(self, player: Player):
-		self.shuffle_events()
+		self.next_event = "combat"
 		return (f"{player.name} pulls a walking stick from their pocket and jabs the gnome in the "
-		  	f"eye. The gnome becomes enraged, growls, and viciously attacks {player.name}!")
+		  	f"eye. The gnome becomes enraged, and growls. The gnome transforms into a monster and "
+			f"and viciously attacks {player.name}!")
 	
 	# ----------------------------------------------------------------------------------------------
 	
@@ -1210,16 +1214,42 @@ class Game_Events:
 	
 	def leprechaun_walk_good(self, player: Player):
 		self.shuffle_events()
-		return (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
+		quest = (f"{player.name} looks the little green half-pint up and down. Wheel and deal with this "
 			f"sketchy character? Ain't nobody got time for that! As {player.name} starts to walk "
 			f"away, Stinky shouts, \"Wait! Perhaps ye be interested in finding a way out of this "
 			f"here dark maze. I have a map, see, that will show ya how to escape, but I'll only "
-			f"give it to ya if you rid this dungeon of at least 5 monsters. Also, you will be "
+			f"give it to ya if you rid this dungeon of at least 10 monsters. Also, you will be "
 			f"need'n a compass to use it, but I don't have one. What do ya say?\" It sounds "
 			f"like {player.name} doesn't have much of a choice and agrees to do the leprechaun's "
 			f"dirty work of monster slaying. {player.name} reluctantly agrees and wanders off.")
+		quest_complete = (f"Stinky looks {player.name} up and down. \"Ye are cover'd in goo and "
+			f"stink like a pig's rear! Obviously you have slain many monsters that were bother'n "
+			f"me. Take this and be gone!\" Stinky hands {player.name} a detailed map of Labyrinthia. ")
+		if player.monsters_killed >= 10:
+			if not player.has_map:
+				player.has_map = True
+				victory_message = self.check_for_game_over(player)
+				#if victory_message != "":
+				#	self.next_event = "roll_credits"
+				return f"{quest_complete} {victory_message}"
+			else:
+				return "\"Fine! Be gone ya ingrate!\" Stinky hollers as {player.name} walks off."
+		else:
+			return quest
 	
 	# ----------------------------------------------------------------------------------------------
+			
+	def check_for_game_over(self, player: Player):
+		victory = ""
+		if player.has_compass and player.has_map:
+			victory = (f"With the map and compass in hand, {player.name} carefully examines it, which "
+			f"gives instruction to turn slightly to the left and look up. Directly in front of "
+			f"{player.name} is a door under a large glowing \'EXIT\' sign. Eureka! That was there "
+			f"the whole time? {player.name} needs to start paying closer attention!")
+			self.victory = True
+		return victory
+			
+	# ----------------------------------------------------------------------------------------------			
 
 	def leprechaun_walk_bad(self, player: Player):
 		self.shuffle_events()
