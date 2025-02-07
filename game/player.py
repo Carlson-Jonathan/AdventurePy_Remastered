@@ -20,6 +20,9 @@ class Player:
 		self.battles_fled = 0
 		self.health_potions_drank = 0
 		self.display_width = 75
+		self.can_read_runes = False
+		self.has_gnome_hat = False
+		self.has_staff_skills = False
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 
@@ -58,7 +61,10 @@ class Player:
 			"save_scum": self.save_scum,
 			"battles_fled": self.battles_fled,
 			"health_potions_drank": self.health_potions_drank,
-			"display_width": 75
+			"display_width": 75,
+			"can_read_runes": self.can_read_runes,
+			"has_gnome_hat": self.has_gnome_hat,
+			"has_staff_skills": self.has_staff_skills
 		}
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
