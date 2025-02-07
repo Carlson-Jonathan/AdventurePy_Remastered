@@ -1,3 +1,5 @@
+import random
+
 class Player:
 	def __init__(self):
 		self.name = "Anonymous"
@@ -13,6 +15,7 @@ class Player:
 		self.has_map = False
 		self.has_magic_ring = False
 		self.treasure_keys = 0
+		self.base_combat_damage = 5
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 
@@ -47,3 +50,26 @@ class Player:
 			"has_magic_ring": self.has_magic_ring,
 			"treasure_keys": self.treasure_keys
 		}
+
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	def get_base_damage(self):
+		return random.randint(int(self.base_combat_damage * 0.5), self.base_combat_damage * 2)
+	
+	def get_sword_damage(self):
+		return random.randint(15, 25)
+	
+	def get_staff_damage(self):
+		return random.randint(1, 35)
+	
+	def get_fist_damage(self):
+		return random.randint(3, 7)
+
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	def get_combat_damage(self):
+		damages = {"Fists": self.get_fist_damage, "Sword": self.get_sword_damage, "Staff": self.get_staff_damage}
+		return self.get_base_damage() + damages[self.equipped_weapon]()
+
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

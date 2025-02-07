@@ -18,15 +18,15 @@ class Game_Events:
 				"options": ["Go down the corridor", "Climb down the grate", "Yell for help", "Save Game"],
 				"action": self.generic_action_prompt,
 				"selection1": [
-					self.nothing,
+					#self.nothing,
 					self.monster_encounter,
-					self.hallway_trap_good,
-					self.hallway_trap_bad,
-					self.hallway_trap_none,
-					self.trip_good,
-					self.trip_bad,
-					self.trip_none,
-					self.find_treasure_chest
+					#self.hallway_trap_good,
+					#self.hallway_trap_bad,
+					#self.hallway_trap_none,
+					#self.trip_good,
+					#self.trip_bad,
+					#self.trip_none,
+					#self.find_treasure_chest
 				],
 				"selection2": [
 					self.monster_encounter,
@@ -208,11 +208,20 @@ class Game_Events:
 	##################################### Combat Events ############################################
 
 	def combat_event(self, player: Player):
+		self.display_monster_stats()
 		return (f"The monster steps forward—a hulking {self.monster.name}, its many eyes glinting in the dim light. "
 			f"Its spindly legs shift with unnatural grace, clicking against the stone with each movement. "
 			f"A low hiss escapes its fanged maw, the air thick with the scent of damp earth and decay. "
 			f"This thing isn’t just lurking—it’s ready to strike.")
 	
+	# ----------------------------------------------------------------------------------------------
+
+	def display_monster_stats(self):
+		print(f"\n\nMonster stats:\n\tHealth: {self.monster.health},\n\tAccuracy: {self.monster.accuracy}\n\t"
+		f"Evasion: {self.monster.evasion}\n\tMax Damage: {self.monster.max_damage}\n\t"
+		f"Min Damage: {self.monster.min_damage}\n\t{self.monster.name}")
+		input()
+
 	# ----------------------------------------------------------------------------------------------
 
 	def equip_weapon_action(self, player: Player):
@@ -262,19 +271,31 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def combat_attack(self, player: Player):
-		damage = random.randint(1, 10)
+		damage = player.get_combat_damage()
 		evaded = random.randint(1, 10)
 		monster_evaded = f"The {self.monster.name} evades {player.name}'s attack!"
 		landed_damage = f"{player.name} strikes the {self.monster.name} and does {damage} damage!"
 		if evaded < 7:
-			# reduce monster health
-			# check for death
-			    # Set next event
-			retaliation = self.monster_retaliation(player)
-			return (f"{landed_damage} {retaliation}")
+			self.monster.health -= damage
+			next_message = self.check_for_monster_death(player)
+			if next_message == "":
+				next_message = self.monster_retaliation(player)
+			return (f"{landed_damage} {next_message}")
 		else:
 			return monster_evaded
+
+	# ----------------------------------------------------------------------------------------------
 		
+	def check_for_monster_death(self, player: Player):
+		victory_message = ""
+		if self.monster.health <= 0:
+			victory_message = (f"The {self.monster.name} squeals and drops to the ground motionless. "
+				f"{player.name} feels a little stronger and more confident.")
+			self.shuffle_events()
+			player.monsters_killed += 1
+			player.base_combat_damage += 2
+		return victory_message
+
 	# ----------------------------------------------------------------------------------------------
 
 	def combat_flee(self, player: Player):
@@ -374,6 +395,7 @@ class Game_Events:
 
 	def door_kick_monster(self, player: Player):
 		self.next_event = "combat"
+		self.monster = monster.generate_monster()
 		return (f"{player.name} rears back and delivers a ferocious kick to the door. With a loud "
 			f"*BANG*, it flies open, slamming against the cavern wall. Dust swirls in the dim "
 			f"light as {player.name} stands triumphantly, ready to claim victory over—oh. Oh no. "
@@ -543,6 +565,7 @@ class Game_Events:
 
 	def river_event_monster(self, player: Player):
 		self.next_event = "combat"
+		self.monster = monster.generate_monster()
 		return (f"{player.name} kneels down to drink from the river, but just as they do, a "
 		  	f"massive creature leaps from the river with a loud splash! {player.name} barely "
 			f"manages to dodge as fangs snap at the air. Apparently, this river's not just "
@@ -924,6 +947,7 @@ class Game_Events:
 
 	def yell_monster(self, player: Player):
 		self.next_event = "combat"
+		self.monster = monster.generate_monster()
 		return (f"{player.name} hollers into the darkness and hears an echoing voice followed "
 		  	f"by a deep growl. {player.name}'s yells are responded to by a monster!")
 	
@@ -1062,6 +1086,7 @@ class Game_Events:
 	
 	def dirpy_gnomey_bad(self, player: Player):
 		self.next_event = "combat"
+		self.monster = monster.generate_monster()
 		return (f"{player.name} stares silently at the gnome. It sniffs and begins making an odd "
 			f"growling sound. The gnome begins increasing in size and transforms into a monster!")
 	
@@ -1211,6 +1236,7 @@ class Game_Events:
 
 	def monster_encounter(self, player: Player):
 		self.next_event = "combat"
+		self.monster = monster.generate_monster()
 		return (f"As {player.name} takes a step forward, a loud rustling comes from the shadows. "
 			f"Before they can react, a giant, furry monster leaps out with a terrifying roar! "
 			f"Well, that was unexpected. {player.name} stumbles back, face pale, as the creature "
