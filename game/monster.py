@@ -18,4 +18,3 @@ class Monster:
         self.max_damage = max_damage
         self.evasion = evasion
         self.accuracy = accuracy
-

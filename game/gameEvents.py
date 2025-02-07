@@ -81,7 +81,7 @@ class Game_Events:
 				],
 				"selection2": [
 					self.leprechaun_walk_good,
-					self.leprechaun_walk_bad
+					#self.leprechaun_walk_bad
 				],
 				"selection3": [
 					self.leprechaun_bag_good,
@@ -186,12 +186,11 @@ class Game_Events:
 			},
 			"combat": {
 				"event": self.combat_event,
-				"options": ["Attack", "Flee", "Change Weapon", "Lay Down and Die"],
+				"options": ["Attack", "Flee", "Change Weapon"],
 				"action": self.generic_action_prompt,
 				"selection1": [self.combat_attack],
 				"selection2": [self.combat_flee],
 				"selection3": [self.combat_change_weapon],
-				"selection4": [Utilities.save_game]
 			},
 			"combat_weapon": {
 				"event": self.combat_event,
@@ -201,11 +200,103 @@ class Game_Events:
 				"selection2": [self.equip_weapon2],
 				"selection3": [self.equip_weapon3],
 				"selection4": [self.equip_weapon4]
+			},
+			"boss_fight": {
+				"event": self.dragon_event,
+				"options": ["Scream", "Panic", "Hide", "Surrender"],
+				"action": self.generic_action_prompt,
+				"selection1": [self.dragon_options],
+				"selection2": [self.dragon_options],
+				"selection3": [self.dragon_options],
+				"selection4": [self.dragon_options]
+			},
+			"victory": {
+				"event": self.player_leaves_Labyrinthia,
+				"options": ["Roll Credits"],
+				"action": self.generic_action_prompt,
+				"selection1": [self.roll_credits],
 			}
 		}
 
 		self.populate_event_functions(self.game_data)
 		self.initialize_event_frequencies()
+
+	####################################### Boss Fight #############################################
+		
+	def player_leaves_Labyrinthia(self, player: Player):
+		return (f"With the dragon defeated, {player.name} steps out into the bright daylight, "
+			f"feeling the warmth of the sun on their skin for the first time in what seems "
+			f"like ages. The air is fresh, the world outside is free. It’s over. After so many "
+			f"trials, traps, and monsters, {player.name} has emerged victorious. Freedom. "
+			f"The sweet taste of victory lingers in the air, as if every breath is a reward. "
+			f"{player.name} smiles, knowing that all the blood, sweat, and tears have led to "
+			f"this very moment. Escape at last.\n\n"
+			f"Or at least, that’s what they thought. Suddenly, the world around {player.name} "
+			f"begins to flicker. The sky shimmers like a broken screen, and the ground starts "
+			f"to tremble. The light fades, and in its place, a hum, like static from an old TV. "
+			f"Everything starts to glitch, like the seams of reality are coming undone. And then, "
+			f"just like that, the world around {player.name} fades into black.\n\n"
+			f"{player.name} blinks, disoriented. The screen flashes brightly. The hum is gone. "
+			f"{player.name} is sitting at a desk, controller in hand, staring at the glowing screen. "
+			f"Wait. What? Was it all just a... game? The walls of Labyrinthia, the dragon, the "
+			f"treasure—it was all just pixels and code. The entire journey, an illusion. A twist "
+			f"of fate, or maybe just a waste of time. What now?\n\n"
+			f"The screen displays ‘Game Over.’ The world outside is still the same. A few hours "
+			f"wasted, a few achievements unlocked, and a whole lot of nothing in between. But hey, "
+			f"at least {player.name} got to feel like a hero for a little while, right? Or was that "
+			f"the point? Maybe, just maybe, it's time to turn off the game and face what's really out there. "
+			f"Or... you could just play another round.")
+	
+	# ----------------------------------------------------------------------------------------------
+	
+	def roll_credits(self, player: Player):
+		credits = [
+			("Story writer", "Jonathan Carlson"),
+			("Graphic artist", "Jonathan Carlson"),
+			("Graphic assistant", "Jonathan Carlson"),
+			("Developer", "Jonathan Carlson"),
+			("Producer", "Jonathan Carlson"),
+			("Game Architect", "Jonathan Carlson"),
+			("Accountant", "Jonathan Carlson"),
+			("Director", "Jonathan Carlson"),
+			("Music Scores by", "Jonathan Carlson"),
+			("Debugger", "Jonathan Carlson"),
+			("Purchasing", "Jonathan Carlson"),
+			("Lunch Guy", "Jonathan Carlson"),
+			("Assistant lunch guy", "Jonathan Carlson")
+		]
+		
+		for label, name in credits:
+			print("\n")
+			print(f"\t{label:<25}{name:>20}")
+			print("\n")
+
+		input("Press [ENTER] to exit.")
+		exit()
+	
+	# ----------------------------------------------------------------------------------------------
+	
+	def ending_action(self, player: Player):
+		return "Thank you for playing!"
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def dragon_event(self, player: Player):
+		self.next_event = "combat"
+		self.monster = monster.generate_monster()
+		self.monster.name = "Dragon"
+		# Custom Dragon stats
+		return (f"The colossal green dragon looms over the narrow tunnel, its massive form blocking "
+			f"the path to daylight and certain escape. Its glowing yellow eyes lock onto "
+			f"{player.name}, gleaming with hunger as it lets out a low, menacing growl. The air is "
+			f"thick with the scent of smoke, and the heat from its body makes the tunnel feel "
+			f"unbearably warm. There is no way under, over, or around this scaled menace. The only "
+			f"choice now is to face this beast head-on if {player.name} hopes to escape.")
+	
+	# ----------------------------------------------------------------------------------------------
+
+	def dragon_options(self, player: Player):
+		return f"That won't help {player.name}. It is time for a life or death struggle. Good luck!"
 
 	##################################### Combat Events ############################################
 
@@ -231,7 +322,7 @@ class Game_Events:
 					f"for now... What do you want etched on {player.name}'s tombstone?")
 		else:
 			return (f"Great! {player.name} has something to fight the {self.monster.name} with! "
-	            f"Which weapon should {player.name} choose?")
+				f"Which weapon should {player.name} choose?")
 
 	# ----------------------------------------------------------------------------------------------
 		
@@ -296,7 +387,18 @@ class Game_Events:
 				f"motionless and defeated. The air feels lighter as {player.name} stands victorious, "
 				f"strength coursing through their veins and confidence soaring. It's clear—{player.name} is "
 				f"stronger now, ready for whatever challenge lies ahead.")
-			self.shuffle_events()
+			if self.monster.name == "Dragon":
+				victory_message = (f"The dragon's roar echoes through the tunnel one last time as it "
+				   f"collapses in a heap of scorched scales. Its massive body shudders "
+				   f"and falls still, the only sound now the slow, labored breaths of {player.name}. "
+				   f"As the final embers of the dragon's breath fade, {player.name} stands triumphant, "
+				   f"covered in sweat and scorch marks, but unscathed. The path to freedom is clear, "
+				   f"but the weight of the victory is heavy. {player.name} knows they've earned it. "
+				   f"With a victorious grin, they step forward, ready to claim their freedom and face "
+				   f"whatever comes next.")
+				self.next_event = "victory"
+			else:
+				self.shuffle_events()
 			player.monsters_killed += 1
 			player.base_combat_damage += 2
 		return victory_message
@@ -953,8 +1055,12 @@ class Game_Events:
 		rand_num = random.randint(0, 2)
 		self.shuffle_events()
 		items = ["compass", "vial of troll's blood", "magic ring"]
+		boss_fight = ""
 		if rand_num == 0:
 			player.has_compass = True
+			boss_fight = self.check_for_final_boss(player)
+			if boss_fight != "":
+				self.next_event = "boss_fight"
 		if rand_num == 1:
 			player.trolls_blood += 1
 		if rand_num == 2:
@@ -971,7 +1077,8 @@ class Game_Events:
 		return (f"{player.name} climbs the golden pile and grabs the lid of the chest. "
 			f"The chest creeks open. {player.name} finds a {items[rand_num]}! "
 			f"{item_description[rand_num]}{player.name} is pleased with the loot and stares at it "
-			f"wandering out the door forgetting that there was ever anything else in the room.")
+			f"wandering out the door forgetting that there was ever anything else in the room. "
+			f"{boss_fight}")
 	
 	# ----------------------------------------------------------------------------------------------
 
@@ -1306,10 +1413,10 @@ class Game_Events:
 		if player.monsters_killed >= 10:
 			if not player.has_map:
 				player.has_map = True
-				victory_message = self.check_for_game_over(player)
-				#if victory_message != "":
-				#	self.next_event = "roll_credits"
-				return f"{quest_complete} {victory_message}"
+				boss_fight = self.check_for_final_boss(player)
+				if boss_fight != "":
+					self.next_event = "boss_fight"
+				return f"{quest_complete} {boss_fight}"
 			else:
 				return "\"Fine! Be gone ya ingrate!\" Stinky hollers as {player.name} walks off."
 		else:
@@ -1317,15 +1424,18 @@ class Game_Events:
 	
 	# ----------------------------------------------------------------------------------------------
 			
-	def check_for_game_over(self, player: Player):
-		victory = ""
+	def check_for_final_boss(self, player: Player):
+		dragon_fight = ""
 		if player.has_compass and player.has_map:
-			victory = (f"With the map and compass in hand, {player.name} carefully examines it, which "
-			f"gives instruction to turn slightly to the left and look up. Directly in front of "
-			f"{player.name} is a door under a large glowing \'EXIT\' sign. Eureka! That was there "
-			f"the whole time? {player.name} needs to start paying closer attention!")
-			self.victory = True
-		return victory
+			dragon_fight = (f"With the map and compass in hand, {player.name} carefully examines it, which "
+				f"gives instruction to turn slightly to the left and look up. Directly in front of "
+				f"{player.name} is a door under a large glowing 'EXIT' sign. Eureka! That was there "
+				f"the whole time? {player.name} needs to start paying closer attention! "
+				f"Feeling triumphant, {player.name} steps forward, ready to escape. But just as the door "
+				f"swings open, a huge, menacing dragon blocks the exit, its scales shimmering in the sunlight. "
+				f"With a growl, it eyes {player.name} as if saying, 'Not so fast.' "
+				f"Looks like the final boss wasn’t just a metaphor!") 
+		return dragon_fight
 			
 	# ----------------------------------------------------------------------------------------------			
 
