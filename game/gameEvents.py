@@ -186,11 +186,12 @@ class Game_Events:
 			},
 			"combat": {
 				"event": self.combat_event,
-				"options": ["Attack", "Flee", "Change Weapon"],
+				"options": ["Attack", "Flee", "Change weapon", "Drink invisibilty potion"],
 				"action": self.generic_action_prompt,
 				"selection1": [self.combat_attack],
 				"selection2": [self.combat_flee],
 				"selection3": [self.combat_change_weapon],
+				"selection4": [self.drink_invisibility_potion]
 			},
 			"combat_weapon": {
 				"event": self.combat_event,
@@ -266,10 +267,10 @@ class Game_Events:
 			("Assistant lunch guy", "Jonathan Carlson")
 		]
 		
+		print("\n")
 		for label, name in credits:
-			print("\n")
 			print(f"\t{label:<25}{name:>20}")
-			print("\n")
+		print("\n")
 
 		input("Press [ENTER] to exit.")
 		exit()
@@ -302,16 +303,20 @@ class Game_Events:
 
 	def combat_event(self, player: Player):
 		#self.display_monster_stats()
-		return (f"The monster steps forward- a {self.monster.name}! Its form shifting unnaturally in the dim light. "
-				f"A low hiss escapes its maw, the air thick with a foul scent. This thing isn’t just lurking – "
-				f"it’s ready to strike.")
+		return (f"The monster steps forward- a {self.monster.name}! Its form shifting unnaturally "
+			f"in the dim light. A low hiss escapes its maw, the air thick with a foul scent. This "
+			f"thing isn’t just lurking – it’s ready to strike.")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def display_monster_stats(self):
-		print(f"\n\nMonster stats:\n\tHealth: {self.monster.health},\n\tAccuracy: {self.monster.accuracy}\n\t"
-		f"Evasion: {self.monster.evasion}\n\tMax Damage: {self.monster.max_damage}\n\t"
-		f"Min Damage: {self.monster.min_damage}\n\t{self.monster.name}")
+		print(f"\n\nMonster stats:")
+		print(f"\t{"Name":<20}{self.monster.name:>10}")
+		print(f"\t{"Health":<20}{self.monster.health:>10}")
+		print(f"\t{"Accuracy":<20}{self.monster.accuracy:>10}")
+		print(f"\t{"Evasion":<20}{self.monster.evasion:>10}")
+		print(f"\t{"Max Damage":<20}{self.monster.max_damage:>10}")
+		print(f"\t{"Min Damage":<20}{self.monster.min_damage:>10}")
 		input()
 
 	# ----------------------------------------------------------------------------------------------
@@ -400,7 +405,7 @@ class Game_Events:
 			else:
 				self.shuffle_events()
 			player.monsters_killed += 1
-			player.base_combat_damage += 2
+			player.base_combat_damage += 1
 		return victory_message
 
 	# ----------------------------------------------------------------------------------------------
@@ -445,7 +450,30 @@ class Game_Events:
 			return (f"{landed_damage} {death_message}")
 		else:
 			return player_evaded
-		   
+		
+	# ----------------------------------------------------------------------------------------------
+
+	def drink_invisibility_potion(self, player: Player):
+		potion = (f"{player.name} frantically searches through their inventory, tossing aside "
+			f"scrolls, weapons, and random trinkets. Sweat beads on their forehead as they "
+			f"realize with growing panic—there’s no potion to be found! The monster snarls, closing "
+			f"the distance, and {player.name} is left with no choice but to face the danger.")
+		if player.invisibility_potions > 0:
+			if self.monster.name == "Dragon":
+				player.invisibility_potions = 0
+				potion = (f"{player.name} reaches into their inventory and grabs an invisibility potion. "
+					f"As the cork is popped and the potion begins to bubble, the air around {player.name} "
+					f"begins to shimmer. Just as they prepare to drink it, a powerful surge of energy pulses "
+					f"from the dragon. The potions immediately fizzle and evaporate, leaving no trace "
+					f"behind! {player.name} must face the monster without the safety of invisibility!")
+			else:
+				self.shuffle_events()
+				potion = (f"As {player.name} drinks the invisibility potion, a shimmering barrier surrounds "
+					f"them, bending light and sound around their form. The {self.monster.name} sniffs the air, but "
+					f"finds nothing—{player.name} has vanished without a trace. Frustrated, the monster "
+					f"wanders aimlessly while {player.name} quietly slips past, escaping to safety.")
+				player.invisibility_potions -= 1
+		return potion
 
 	##################################### Mirror Events ############################################
 
@@ -481,36 +509,39 @@ class Game_Events:
 		ring = "yes" if {player.has_magic_ring} else "no"
 		map = "yes" if {player.has_map} else "no"
 		compass = "yes" if {player.has_compass} else "no"
+		seperator = 30
 		organized_stats = (
-			f"Name: {player.name}  |  "
-			f"\nHealth: {player.health} / {player.maximum_health}  |  "
-			f"\nBase damage: {player.base_combat_damage}  |  "
-			f"\nWeapons: {weapons}  |  "
-			f"\nInvisibility Potions: {player.invisibility_potions}  |  "
-			f"\nTreasure chest keys: {player.treasure_keys}  |  "
-			f"\nHealth potions drank: {player.health_potions_drank}  | "
-			f"\nTroll's Blood potions drank: {player.trolls_blood}  |  "
-			f"\nMonsters killed: {player.monsters_killed}  |  "
-			f"\nBattles Fled: {player.battles_fled}  |  "
-			f"\nHas magic ring: {ring}  |  "
-			f"\nHas compass: {compass}  |  "
-			f"\nHas map: {map}  |  "
-			f"\nSave scum count: {player.save_scum}")
-		
+			f"\n\t{"Name":<{seperator}}{player.name:>10}"
+			f"\n\t{"Health":<{seperator}}{player.health:>4} / {player.maximum_health}"
+			f"\n\t{"Base damage":<{seperator}}{player.base_combat_damage:>10}"
+			f"\n\t{"Weapons":<{seperator}}{weapons:>10}"
+			f"\n\t{"Invisibility Potions":<{seperator}}{player.invisibility_potions:>10}"
+			f"\n\t{"Treasure chest keys":<{seperator}}{player.treasure_keys:>10}"
+			f"\n\t{"Health potions drank":<{seperator}}{player.health_potions_drank:>10}"
+			f"\n\t{"Troll's Blood potions drank":<{seperator}}{player.trolls_blood:>10}"
+			f"\n\t{"Monsters killed":<{seperator}}{player.monsters_killed:>10}"
+			f"\n\t{"Battles Fled":<{seperator}}{player.battles_fled:>10}"
+			f"\n\t{"Has magic ring":<{seperator}}{ring:>10}"
+			f"\n\t{"Has compass":<{seperator}}{compass:>10}"
+			f"\n\t{"Has map":<{seperator}}{map:>10}"
+			f"\n\t{"Save scum count":<{seperator}}{player.save_scum:>10}")
+
+		print(organized_stats)
+		input()
+
 		return (f"{player.name} stares at the sudden display of stats and items, unsure how "
 			f"they got there. They don’t remember asking for this—what is all this stuff? "
 			f"Why are there numbers next to things they don’t even recognize? {player.name} feels "
 			f"like they’re being examined by some unseen force, poking around in their most private "
 			f"details. They shake their head, trying to shake the weird sensation off. It’s as if "
 			f"someone’s looking through their personal diary and critiquing their choices. Oddly, "
-			f"{player.name} can't help but wonder if this is how a hamster feels when it’s in a cage."
-			f"\n\n{organized_stats}")
+			f"{player.name} can't help but wonder if this is how a hamster feels when it’s in a cage.")
 
 	# ----------------------------------------------------------------------------------------------
 
 	def mirror_change_width(self, player: Player):
 		self.shuffle_events()
-		self.display_width = Utilities.get_player_input("Enter new display width (recommended 20-300) - default = 75\nNew Width: ", 300)
+		self.display_width = Utilities.get_player_input("Enter new display width (recommended 60-300) - default = 75\nNew Width: ", 300)
 		return (f"{player.name} notices the world suddenly *stretching* and *squishing* as if "
 			f"someone's pulling and squeezing it like an old rubber band. Their surroundings "
 			f"warp, the walls elongate, and the ground seems to shrink under their feet. It’s like "
