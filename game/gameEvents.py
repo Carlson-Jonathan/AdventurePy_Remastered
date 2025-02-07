@@ -286,6 +286,9 @@ class Game_Events:
 		self.next_event = "combat"
 		self.monster = monster.generate_monster()
 		self.monster.name = "Dragon"
+		self.monster.max_health = 1000
+		self.monster.min_damage = 50
+		self.monster.max_damage = 85
 		# Custom Dragon stats
 		return (f"The colossal green dragon looms over the narrow tunnel, its massive form blocking "
 			f"the path to daylight and certain escape. Its glowing yellow eyes lock onto "
@@ -302,10 +305,18 @@ class Game_Events:
 	##################################### Combat Events ############################################
 
 	def combat_event(self, player: Player):
+		remove_book = ""
+		if self.monster.name == "Dragon" and "Magic Book" in player.weapons:
+			remove_book = (f"Before {player.name} can prepare, the dragon unleashes a terrible "
+			f"inferno from its maw. {player.name} jumps out of the way taking cover behind a rock "
+			f"but not before thier Magic Book gets dropped. Looking back at where {player.name} was "
+			f"just standing lays a pile of ash. Crap! That book would have been useful about now!")
+			player.weapons.discard("Magic Book")
+			player.equipped_weapon = "Fists"
 		#self.display_monster_stats()
 		return (f"The monster steps forward- a {self.monster.name}! Its form shifting unnaturally "
 			f"in the dim light. A low hiss escapes its maw, the air thick with a foul scent. This "
-			f"thing isn’t just lurking – it’s ready to strike.")
+			f"thing isn’t just lurking – it’s ready to strike. {remove_book}")
 
 	# ----------------------------------------------------------------------------------------------
 
@@ -369,22 +380,32 @@ class Game_Events:
 
 	def combat_attack(self, player: Player):
 		regen_message = player.apply_regeneration()
-		damage, attack_message = self.get_player_attack_details(player)
-		total_damage = damage if isinstance(damage, int) else sum(damage)
-		damage_string = (f"{damage} damage!" if isinstance(damage, int)  
-			else " + ".join(f"{v} damage!" for v in damage))
-		evaded = random.randint(1, 10)
-		monster_evaded = f"The {self.monster.name} swiftly dodges {player.name}'s attack!"
-		landed_damage = f"{player.name} {attack_message} the {self.monster.name}, dealing {damage_string}"
-		if evaded < 8:
-			self.monster.health -= total_damage
-			next_message = self.check_for_monster_death(player)
-			if next_message == "":
+		next_message = ""
+		# Spell Incantation
+		if player.equipped_weapon == "Magic Book":
+			spell = self.get_magic_book_attack(player)
+			if self.monster.health > 0:
 				next_message = self.monster_retaliation(player)
-			return (f"{regen_message} {landed_damage} {next_message}")
+			return f"{regen_message} {spell} {next_message}"
+
+		# Normal attacks
 		else:
-			next_message = self.monster_retaliation(player)
-			return f"{regen_message} {monster_evaded} {next_message}"
+			damage, attack_message = self.get_player_attack_details(player)
+			total_damage = damage if isinstance(damage, int) else sum(damage)
+			damage_string = (f"{damage} damage!" if isinstance(damage, int)  
+				else " + ".join(f"{v} damage!" for v in damage))
+			evaded = random.randint(1, 10)
+			monster_evaded = f"The {self.monster.name} swiftly dodges {player.name}'s attack!"
+			landed_damage = f"{player.name} {attack_message} the {self.monster.name}, dealing {damage_string}"
+			if evaded < 8:
+				self.monster.health -= total_damage
+				next_message = self.check_for_monster_death(player)
+				if next_message == "":
+					next_message = self.monster_retaliation(player)
+				return (f"{regen_message} {landed_damage} {next_message}")
+			else:
+				next_message = self.monster_retaliation(player)
+				return f"{regen_message} {monster_evaded} {next_message}"
 
 	# ----------------------------------------------------------------------------------------------
 		
@@ -402,8 +423,7 @@ class Game_Events:
 				"strikes ",
 				"performs a double strike on ",
 				f"focuses hard. Triple strike! {player.name} batters the ",
-				"embraces the spirit of Kung Fu and unleashes a devestating flurry of blows on "
-			]
+				"embraces the spirit of Kung Fu and unleashes a devestating flurry of blows on "]
 			if special_attack <= 35:
 				attack_type = special_attack_message[0]
 			elif 35 < special_attack <= 65:
@@ -421,6 +441,56 @@ class Game_Events:
 			attack_type = "Player cast some spell."
 			
 		return attack_damage, attack_type
+
+	# ----------------------------------------------------------------------------------------------
+
+	def get_magic_book_attack(self, player: Player):
+		if player.can_read_runes:
+			death_message = effect = monster_death = ""
+			spells = ["The Words of Unmaking", "The Reversed Curse", "Absolute Gibberish", 
+			 	"Half Life", "Ultimate Healing"]
+			spell = random.choice(spells)
+			incantation = (f"{player.name} flips the book open to a random page and recites a spell "
+				f"titled, \"{spell}\"... ")
+			match spell:
+				case "The Words of Unmaking":
+					effect = (f"The {self.monster.name} suddenly vanishes in a poof, as if swallowed by the air "
+					"itself. One moment, it's there, and the next, it's gone, leaving no trace behind. "
+					"The battle ends abruptly, with no victor to claim the prize.")
+					self.shuffle_events()
+				case "The Reversed Curse":
+					damage = random.randint(40, 60)
+					effect = (f"The words of the curse rebound violently, striking {player.name} instead. "
+					"A sharp pain courses through their body as the curse takes hold, leaving them "
+					"reeling and weakened. The monster watches, seemingly amused by the player’s misfortune. "
+					f"{player.name} takes {damage} damage!")
+					player.modify_health(-damage)
+					death_message = player.check_for_death()
+				case "Absolute Gibberish":
+					effect = (f"The air shudders with confusion. "
+					f"The {self.monster.name} tilts its head, unsure what to make of your nonsense spell. "
+					f"Well that didn't seem to do anything useful.")
+				case "Half Life":
+					damage = int(self.monster.health / 2)
+					self.monster.health -= damage
+					monster_death = self.check_for_monster_death(player)
+					effect = (f"A pulse of energy radiates toward the {self.monster.name}. "
+					f"The creature lets out a pained screech as its health suddenly plummets, its wounds worsening. "
+					f"With a staggering step, the monster now looks significantly weaker, barely able to stand "
+					f"taking {damage} damage!")
+				case "Ultimate Healing":
+					self.monster.health = min(self.monster.max_health, 99999)
+					player.modify_health(99999)
+					effect = (f"A brilliant light engulfs the battlefield, wrapping both {player.name} and "
+					f"{self.monster.name} in a warm, soothing glow. Wounds vanish, fatigue fades, and "
+					f"within moments, both stand completely restored!")
+			return f"{incantation} {effect} {monster_death} {death_message}"
+		else:
+			fizzles = ["Drazznark Clypt!", "Zarm Zarmoch!", "Koorplax Oozle!", "Zozilbrip Hooz!",
+				"Flam-boom Gratch!", "Zogwabble Floop!", "Gorbex Sharaz!", "Loozoodle-Rah!"]
+			spell = random.choice(fizzles)
+			return (f"{player.name} opens the magic book and attempts to read a word. \"{spell}\" "
+				f"{player.name} shouts enthusiastically... But nothing happens.")
 
 	# ----------------------------------------------------------------------------------------------
 		
@@ -473,7 +543,7 @@ class Game_Events:
 	# ----------------------------------------------------------------------------------------------
 
 	def monster_retaliation(self, player: Player):
-		damage = random.randint(10, 20)
+		damage = self.monster.get_monster_damage()
 		evaded = random.randint(1, 12)
 		player_evaded = (f"The {self.monster.name} lunges at {player.name}, but {player.name} leaps "
 			f"back, narrowly dodging the attack!")
@@ -1336,8 +1406,8 @@ class Game_Events:
 			f"hat behind. Picking it up {player.name} finds a potion inside and chugs it. "
 			f"{player.name} regains {rand_num} health!")
 		if player.can_read_runes:
-			hat = f"{player.name} doesn't think there is much else to do with the goofy little "
-			f"hat and decides to leave it."
+			hat = (f"{player.name} doesn't think there is much else to do with the goofy little "
+			f"hat and decides to leave it.")
 		else:
 			hat = f"{player.name} picks up the little pointy hat and tries it on. Stylish!"
 			player.has_gnome_hat = True
