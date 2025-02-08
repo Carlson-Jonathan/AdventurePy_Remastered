@@ -81,7 +81,7 @@ class Game_Events:
 				],
 				"selection2": [
 					self.leprechaun_walk_good,
-					#self.leprechaun_walk_bad
+					self.leprechaun_walk_bad
 				],
 				"selection3": [
 					self.leprechaun_bag_good,
@@ -311,7 +311,9 @@ class Game_Events:
 			remove_book = (f"Before {player.name} can prepare, the dragon unleashes a terrible "
 			f"inferno from its maw. {player.name} jumps out of the way taking cover behind a rock "
 			f"but not before thier Magic Book gets dropped. Looking back at where {player.name} was "
-			f"just standing lays a pile of ash. Crap! That book would have been useful about now!")
+			f"just standing lays a pile of ash. Crap! That book would have been useful about now! "
+			f"What is worse, that gale of flames slammed the door shut behind {player.name} and "
+			f"melted off the door knob! There is absolutely no escape!")
 			player.weapons.discard("Magic Book")
 			player.equipped_weapon = "Fists"
 		#self.display_monster_stats()
@@ -557,7 +559,7 @@ class Game_Events:
 		failed = f"{player.name} tries to flee, but the {self.monster.name} is too quick to let them escape!"
 		fled = (f"{player.name} bolts, running for their life with a scream that echoes through the "
 			f"air! (Cowardly, but effective!)")
-		if escape < 7:
+		if escape < 7 or self.monster.name == "Dragon":
 			retaliation = self.monster_retaliation(player)
 			return f"{regen_message} {failed} {retaliation}"
 		else:
@@ -647,9 +649,9 @@ class Game_Events:
 	def mirror_view_stats(self, player: Player):
 		self.shuffle_events()
 		weapons = ", ".join(player.weapons)
-		ring = "yes" if {player.has_magic_ring} else "no"
-		map = "yes" if {player.has_map} else "no"
-		compass = "yes" if {player.has_compass} else "no"
+		ring = "yes" if player.has_magic_ring else "no"
+		map = "yes" if player.has_map else "no"
+		compass = "yes" if player.has_compass else "no"
 		seperator = 30
 		organized_stats = (
 			f"\n\t{"Name":<{seperator}}{player.name:>10}"
@@ -845,7 +847,8 @@ class Game_Events:
 			f"the door swings open on its own. Huh. That wasn’t supposed to happen. I distinctly "
 			f"remember writing that this door was locked. Hang on—let me check my notes… Yep, "
 			f"right here: ‘The door is locked and will not open on its own.’ So either I got the "
-			f"wrong script, or {player.name} just has incredibly persuasive knuckles.")  
+			f"wrong script, or {player.name} just has incredibly persuasive knuckles. Oh, the room "
+			f"is empty anyway. Whatever.")  
 	
 	# ----------------------------------------------------------------------------------------------
 
@@ -1590,7 +1593,7 @@ class Game_Events:
 					self.next_event = "boss_fight"
 				return f"{quest_complete} {boss_fight}"
 			else:
-				return "\"Fine! Be gone ya ingrate!\" Stinky hollers as {player.name} walks off."
+				return f"\"Fine! Be gone ya ingrate!\" Stinky hollers as {player.name} walks off."
 		else:
 			return quest
 	

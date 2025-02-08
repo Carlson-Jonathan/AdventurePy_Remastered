@@ -15,7 +15,7 @@ class Player:
 		self.has_map = False
 		self.has_magic_ring = False
 		self.treasure_keys = 0
-		self.base_combat_damage = 5
+		self.base_combat_damage = 0
 		self.save_scum = 0
 		self.battles_fled = 0
 		self.health_potions_drank = 0
