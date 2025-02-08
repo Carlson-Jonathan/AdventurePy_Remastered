@@ -287,6 +287,7 @@ class Game_Events:
 		self.monster = monster.generate_monster()
 		self.monster.name = "Dragon"
 		self.monster.max_health = 1000
+		self.monster.health = 1000
 		self.monster.min_damage = 50
 		self.monster.max_damage = 85
 		# Custom Dragon stats
@@ -384,7 +385,7 @@ class Game_Events:
 		# Spell Incantation
 		if player.equipped_weapon == "Magic Book":
 			spell = self.get_magic_book_attack(player)
-			if self.monster.health > 0:
+			if self.monster.health > 0 and player.health > 0:
 				next_message = self.monster_retaliation(player)
 			return f"{regen_message} {spell} {next_message}"
 
@@ -448,7 +449,7 @@ class Game_Events:
 		if player.can_read_runes:
 			death_message = effect = monster_death = ""
 			spells = ["The Words of Unmaking", "The Reversed Curse", "Absolute Gibberish", 
-			 	"Half Life", "Ultimate Healing"]
+			 	"Half Life", "Ultimate Healing", "Roulette", "Dark Empathy", "Time Dialation"]
 			spell = random.choice(spells)
 			incantation = (f"{player.name} flips the book open to a random page and recites a spell "
 				f"titled, \"{spell}\"... ")
@@ -484,6 +485,36 @@ class Game_Events:
 					effect = (f"A brilliant light engulfs the battlefield, wrapping both {player.name} and "
 					f"{self.monster.name} in a warm, soothing glow. Wounds vanish, fatigue fades, and "
 					f"within moments, both stand completely restored!")
+				case "Roulette":
+					rand_num = random.randint(1, 3)
+					victim = [f"the {self.monster.name}", f"the {self.monster.name}", f"{player.name}"]
+					effect = (f"A glowing spindal appears rotating between {player.name} and "
+					f"the {self.monster.name}. Both {player.name} and the {self.monster.name} "
+					f"are unable to make another move until the spinner comes to a complete stop "
+					f"pointing at its victim- {victim[rand_num - 1]}. "
+					f"Suddenly, {victim[rand_num - 1]}'s very essense is ripped out. ")
+					if rand_num == 3:
+						player.health = 0
+						death_message = player.check_for_death()
+					else:
+						self.monster.health = 0
+						monster_death = self.check_for_monster_death(player)
+				case "Dark Empathy":
+					temp = player.health
+					player.health = self.monster.health
+					self.monster.health = temp
+					effect = (f"The {self.monster.name} shrieks in a panic. {player.name} suddenly "
+					f"feels the very life force being pulled out of them... but then comming back? "
+					f"{player.name} now feels like a {self.monster.name}. Apparently their health "
+					f"has been swapped.")
+				case "Time Dialation":
+					effect = (f"A strange aura distorts the air around {player.name} and the "
+					f"{self.monster.name}. Movements slow to a crawl, and every action "
+					f"feels like wading through molasses. Both combatants now struggle to "
+					f"land effective attacks on each other.")
+					self.monster.min_damage = int(self.monster.min_damage / 5)
+					self.monster.max_damage = int(self.monster.max_damage / 5)
+					player.time_dialation = True
 			return f"{incantation} {effect} {monster_death} {death_message}"
 		else:
 			fizzles = ["Drazznark Clypt!", "Zarm Zarmoch!", "Koorplax Oozle!", "Zozilbrip Hooz!",
@@ -501,6 +532,7 @@ class Game_Events:
 				f"motionless and defeated. The air feels lighter as {player.name} stands victorious, "
 				f"strength coursing through their veins and confidence soaring. It's clear—{player.name} is "
 				f"stronger now, ready for whatever challenge lies ahead.")
+			player.time_dialation = False
 			if self.monster.name == "Dragon":
 				victory_message = (f"The dragon's roar echoes through the tunnel one last time as it "
 				   f"collapses in a heap of scorched scales. Its massive body shudders "
@@ -1650,9 +1682,9 @@ class Game_Events:
 	
 	def death(self, width):
 		border = Utilities.create_ruler(width, 'X')
-		death_message = (f"You’ve failed your quest! You are not giving up though are you? "
+		death_message = Utilities.wrap_text(f"You’ve failed your quest! You are not giving up though are you? "
 			f"With a little save scumming you’ll be back at it in no time. You're probably already "
-			f"planning your next move. ")
+			f"planning your next move. ", self.display_width)
 		game_over = "G A M E   O V E R !"
 		print(f"{border}\n{death_message.center(width)}\n{game_over.center(width)}\n{border}")
 		input()

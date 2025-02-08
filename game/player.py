@@ -23,6 +23,7 @@ class Player:
 		self.can_read_runes = False
 		self.has_gnome_hat = False
 		self.has_staff_skills = False
+		self.time_dialation = False
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
 
@@ -84,8 +85,12 @@ class Player:
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	def get_combat_damage(self):
-		damages = {"Fists": self.get_fist_damage, "Sword": self.get_sword_damage, "Staff": self.get_staff_damage}
-		return self.get_base_damage() + damages[self.equipped_weapon]()
+		damages = {"Fists": self.get_fist_damage, "Sword": self.get_sword_damage, 
+			"Staff": self.get_staff_damage}
+		damage = self.get_base_damage() + damages[self.equipped_weapon]()
+		if self.time_dialation:
+			damage = int(damage / 5)
+		return damage
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
