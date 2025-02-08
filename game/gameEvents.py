@@ -923,9 +923,9 @@ class Game_Events:
 
 	def river_approach_mirror(self, player: Player):
 		self.next_event = "mirror"
-		return ("Jonny steps cautiously toward the mirror, its surface rippling slightly "
-			f"like water. As Jonny peers into it, something *moves* within the "
-			f"reflection—but it’s not Jonny's face staring back. It’s something… else.")
+		return (f"{player.name} steps cautiously toward the mirror, its surface rippling slightly "
+			f"like water. As {player.name} peers into it, something *moves* within the "
+			f"reflection—but it’s not {player.name}'s face staring back. It’s something… else.")
 
 	# ----------------------------------------------------------------------------------------------
 
