@@ -578,21 +578,22 @@ class Game_Events:
 
 	def monster_retaliation(self, player: Player):
 		damage = self.monster.get_monster_damage()
-		evaded = random.randint(1, 12)
+		evaded = random.randint(1, 10)
+		nothing = random.randint(1, 10)
 		player_evaded = (f"The {self.monster.name} lunges at {player.name}, but {player.name} leaps "
 			f"back, narrowly dodging the attack!")
 		landed_damage = (f"The {self.monster.name} lands a vicious blow on {player.name}, dealing "
 			f"{damage} points of damage!")
 		do_nothing = (f"The {self.monster.name} growls menacingly, pacing around {player.name}, "
 			f"as if studying its next angle for attack.")
-		if evaded < 7:
-			if evaded < 3:
-				return do_nothing
+		if nothing > 7:
+			return do_nothing
+		if evaded > 7 :
+			return player_evaded
+		else:
 			player.modify_health(-damage)
 			death_message = player.check_for_death()
 			return (f"{landed_damage} {death_message}")
-		else:
-			return player_evaded
 		
 	# ----------------------------------------------------------------------------------------------
 
@@ -878,7 +879,7 @@ class Game_Events:
 				"an unread love letter", "a picture of a narwhal"]
 			item = random.choice(["a sack of marbles", "a rotten tuna sandwich", "a wooden nickel", 
 							"a jumping bean", "an unread love letter", "a picture of a gnarwall"])
-			comment = "{player.name was probably better off without that...}"
+			comment = f"{player.name} was probably better off without that..."
 		death_message = player.check_for_death()
 		return (f"{player.name} carefully kneels down and starts fiddling with the lock, the sound of "
 			f"the lockpick scraping against the metal filling the air. For a moment, it seems like "

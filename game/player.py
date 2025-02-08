@@ -97,7 +97,7 @@ class Player:
 	def apply_regeneration(self):
 		message = ""
 		if self.trolls_blood > 0:
-			regen = self.trolls_blood * random.randint(2, 5)
+			regen = self.trolls_blood * random.randint(2, 3)
 			self.modify_health(regen)
 			message = (f"{self.name} feels the revitalizing effects of the troll's blood potions "
 			f"and regains {regen} health!")
