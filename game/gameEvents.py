@@ -325,12 +325,12 @@ class Game_Events:
 
 	def display_monster_stats(self):
 		print(f"\n\nMonster stats:")
-		print(f"\t{"Name":<20}{self.monster.name:>10}")
-		print(f"\t{"Health":<20}{self.monster.health:>10}")
-		print(f"\t{"Accuracy":<20}{self.monster.accuracy:>10}")
-		print(f"\t{"Evasion":<20}{self.monster.evasion:>10}")
-		print(f"\t{"Max Damage":<20}{self.monster.max_damage:>10}")
-		print(f"\t{"Min Damage":<20}{self.monster.min_damage:>10}")
+		print(f"\t{'Name':<20}{self.monster.name:>10}")
+		print(f"\t{'Health':<20}{self.monster.health:>10}")
+		print(f"\t{'Accuracy':<20}{self.monster.accuracy:>10}")
+		print(f"\t{'Evasion':<20}{self.monster.evasion:>10}")
+		print(f"\t{'Max Damage':<20}{self.monster.max_damage:>10}")
+		print(f"\t{'Min Damage':<20}{self.monster.min_damage:>10}")
 		input()
 
 	# ----------------------------------------------------------------------------------------------
@@ -415,6 +415,7 @@ class Game_Events:
 	def get_player_attack_details(self, player: Player):
 		attack_damage = player.get_combat_damage()
 		special_attack_message = "strikes "
+		attack_type = ""
 		if player.equipped_weapon == "Fists":
 			attack_type = random.choice(["spits at ", "insults ", "slaps ", "throws a rock at ", "kicks ",
 				"flicks a booger at ", "tickles ", "yells at ", "bites ", "scratches ", "pokes "])
@@ -655,20 +656,21 @@ class Game_Events:
 		compass = "yes" if player.has_compass else "no"
 		seperator = 30
 		organized_stats = (
-			f"\n\t{"Name":<{seperator}}{player.name:>10}"
-			f"\n\t{"Health":<{seperator}}{player.health:>4} / {player.maximum_health}"
-			f"\n\t{"Base damage":<{seperator}}{player.base_combat_damage:>10}"
-			f"\n\t{"Weapons":<{seperator}}{weapons:>10}"
-			f"\n\t{"Invisibility Potions":<{seperator}}{player.invisibility_potions:>10}"
-			f"\n\t{"Treasure chest keys":<{seperator}}{player.treasure_keys:>10}"
-			f"\n\t{"Health potions drank":<{seperator}}{player.health_potions_drank:>10}"
-			f"\n\t{"Troll's Blood potions drank":<{seperator}}{player.trolls_blood:>10}"
-			f"\n\t{"Monsters killed":<{seperator}}{player.monsters_killed:>10}"
-			f"\n\t{"Battles Fled":<{seperator}}{player.battles_fled:>10}"
-			f"\n\t{"Has magic ring":<{seperator}}{ring:>10}"
-			f"\n\t{"Has compass":<{seperator}}{compass:>10}"
-			f"\n\t{"Has map":<{seperator}}{map:>10}"
-			f"\n\t{"Save scum count":<{seperator}}{player.save_scum:>10}")
+			f"\n\t{'Name':<{seperator}}{player.name:>10}"
+			f"\n\t{'Health':<{seperator}}{player.health:>4} / {player.maximum_health}"
+			f"\n\t{'Base damage':<{seperator}}{player.base_combat_damage:>10}"
+			f"\n\t{'Weapons':<{seperator}}{weapons:>10}"
+			f"\n\t{'Invisibility Potions':<{seperator}}{player.invisibility_potions:>10}"
+			f"\n\t{'Treasure chest keys':<{seperator}}{player.treasure_keys:>10}"
+			f"\n\t{'Health potions drank':<{seperator}}{player.health_potions_drank:>10}"
+			f"\n\t{'Trolls Blood potions drank':<{seperator}}{player.trolls_blood:>10}"
+			f"\n\t{'Monsters killed':<{seperator}}{player.monsters_killed:>10}"
+			f"\n\t{'Battles Fled':<{seperator}}{player.battles_fled:>10}"
+			f"\n\t{'Has magic ring':<{seperator}}{ring:>10}"
+			f"\n\t{'Has compass':<{seperator}}{compass:>10}"
+			f"\n\t{'Has map':<{seperator}}{map:>10}"
+			f"\n\t{'Save scum count':<{seperator}}{player.save_scum:>10}"
+		)
 
 		print(organized_stats)
 		input()
